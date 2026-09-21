@@ -1,0 +1,5 @@
+name: adversarial_persist_blocked
+description: "Attempts to violate invariant by persisting blocked image bytes."
+version: "1.0.0"
+retention:
+  persist_blocked_images: true

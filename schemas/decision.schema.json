@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "RiskLevel": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "title": "RiskLevel",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Explainable moderation recommendation produced by DecisionEngine.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Canonical schema semantic version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "subject": {
+      "description": "Subject entity ID (e.g. actor_id)",
+      "title": "Subject",
+      "type": "string"
+    },
+    "level": {
+      "$ref": "#/$defs/RiskLevel",
+      "description": "Evaluated risk level"
+    },
+    "score": {
+      "description": "Composite risk score (0-100)",
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "title": "Score",
+      "type": "number"
+    },
+    "families_triggered": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Families Triggered",
+      "type": "array",
+      "visibility": "analyst"
+    },
+    "evidence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence",
+      "type": "array",
+      "visibility": "analyst"
+    },
+    "counter_evidence": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Counter Evidence",
+      "type": "array",
+      "visibility": "analyst"
+    },
+    "recommended_action": {
+      "description": "Policy pack recommendation (e.g. route to review)",
+      "title": "Recommended Action",
+      "type": "string"
+    },
+    "visibility": {
+      "const": "analyst",
+      "default": "analyst",
+      "title": "Visibility",
+      "type": "string",
+      "visibility": "analyst"
+    }
+  },
+  "required": [
+    "subject",
+    "level",
+    "score",
+    "recommended_action"
+  ],
+  "title": "Decision",
+  "type": "object"
+}

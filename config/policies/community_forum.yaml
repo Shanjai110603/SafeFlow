@@ -1,0 +1,42 @@
+# SafeFlow Community Forum Policy Pack
+# All numerical thresholds are uncalibrated research placeholders.
+
+name: community_forum
+description: "Balanced policy for multi-topic community discussion boards with decentralized topic moderation."
+version: "1.0.0"
+
+enabled_plugins:
+  - image_gate
+  - media_reuse
+  - text_behavior
+  - link_destination
+  - actor_profile
+
+image_gate:
+  policy_profile: strict_avatar
+  nudity_block_threshold: 0.85          # uncalibrated research placeholder
+  nudity_review_threshold: 0.55         # uncalibrated research placeholder
+  suggestive_tag_threshold: 0.65        # uncalibrated research placeholder
+  suggestive_action: ALLOW_TAGGED
+  ocr_explicit_text_action: BLOCK
+  review_behavior: HOLD_DEFAULT_AVATAR
+  classifier_unavailable_action: HOLD_DEFAULT_AVATAR
+  known_bad_hash_action: BLOCK
+  tag_ttl_days: 30
+  rescan_interval_days: 30
+  review_sla_hours: 48
+  cache_allowed_media: false
+
+decision_engine:
+  low_cutoff: 35
+  medium_cutoff: 65
+  high_cutoff: 85
+  high_risk_min_families: 3
+  critical_risk_min_families: 4
+  weak_signal_families:
+    - SUGGESTIVE_PRESENTATION
+    - AI_LIKELIHOOD
+
+retention:
+  audit_retention_days: 365
+  persist_blocked_images: false

@@ -1,0 +1,42 @@
+# SafeFlow Adult-Permitted Platform Policy Pack
+# All numerical thresholds are uncalibrated research placeholders.
+
+name: adult_permitted_platform
+description: "Policy for platforms permitting adult expression in designated spaces, while enforcing strict anti-exploitation invariants."
+version: "1.0.0"
+
+enabled_plugins:
+  - image_gate
+  - media_reuse
+  - text_behavior
+  - link_destination
+  - actor_profile
+
+image_gate:
+  policy_profile: explicit_only
+  nudity_block_threshold: 0.95          # uncalibrated research placeholder
+  nudity_review_threshold: 0.70         # uncalibrated research placeholder
+  suggestive_tag_threshold: 0.85        # uncalibrated research placeholder
+  suggestive_action: ALLOW
+  ocr_explicit_text_action: BLOCK
+  review_behavior: HOLD_DEFAULT_AVATAR
+  classifier_unavailable_action: HOLD_DEFAULT_AVATAR
+  known_bad_hash_action: BLOCK          # Non-negotiable invariant: known-bad material matches always BLOCK
+  tag_ttl_days: 30
+  rescan_interval_days: 60
+  review_sla_hours: 48
+  cache_allowed_media: false
+
+decision_engine:
+  low_cutoff: 40
+  medium_cutoff: 70
+  high_cutoff: 90
+  high_risk_min_families: 3
+  critical_risk_min_families: 4
+  weak_signal_families:
+    - SUGGESTIVE_PRESENTATION
+    - AI_LIKELIHOOD
+
+retention:
+  audit_retention_days: 365
+  persist_blocked_images: false         # Non-negotiable invariant: blocked images are never persisted

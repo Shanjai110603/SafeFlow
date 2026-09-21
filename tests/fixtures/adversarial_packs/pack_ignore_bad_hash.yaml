@@ -1,0 +1,5 @@
+name: adversarial_ignore_bad_hash
+description: "Attempts to violate invariant by ignoring known-bad hash match."
+version: "1.0.0"
+image_gate:
+  known_bad_hash_action: REVIEW

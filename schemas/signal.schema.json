@@ -1,0 +1,84 @@
+{
+  "additionalProperties": false,
+  "description": "Objective observation emitted by a SignalPlugin.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Canonical schema semantic version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "subject_type": {
+      "enum": [
+        "actor",
+        "space",
+        "content",
+        "media",
+        "link",
+        "network"
+      ],
+      "title": "Subject Type",
+      "type": "string"
+    },
+    "subject_id": {
+      "title": "Subject Id",
+      "type": "string"
+    },
+    "family": {
+      "description": "Signal family (e.g. IMAGE_LINK, BEHAVIOR, TARGETING, DESTINATION, PROFILE_CHANGE)",
+      "title": "Family",
+      "type": "string"
+    },
+    "name": {
+      "description": "Machine-readable signal name",
+      "title": "Name",
+      "type": "string"
+    },
+    "value": {
+      "description": "Normalized signal value (typically 0.0 to 1.0)",
+      "title": "Value",
+      "type": "number"
+    },
+    "confidence": {
+      "default": 1.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "evidence_refs": {
+      "description": "IDs of supporting entities",
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "producer": {
+      "description": "SignalPlugin identifier",
+      "title": "Producer",
+      "type": "string"
+    },
+    "producer_version": {
+      "description": "Version of the producing plugin",
+      "title": "Producer Version",
+      "type": "string"
+    },
+    "ts": {
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    }
+  },
+  "required": [
+    "subject_type",
+    "subject_id",
+    "family",
+    "name",
+    "value",
+    "producer",
+    "producer_version"
+  ],
+  "title": "Signal",
+  "type": "object"
+}

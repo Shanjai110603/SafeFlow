@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "An open, platform-agnostic trust & safety signal and decision engine"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [
     { name = "SafeFlow Contributors" }
 ]
@@ -16,7 +16,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -54,6 +53,10 @@ dev = [
 
 [project.scripts]
 safeflow = "safeflow.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["safeflow*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

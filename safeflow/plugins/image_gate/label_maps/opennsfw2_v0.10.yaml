@@ -1,0 +1,14 @@
+backend_name: opennsfw2
+backend_version: "0.10.2"
+status: unverified   # Unverified until backend is installed and evaluated on benchmark
+mode: score_map
+score_field: nsfw_score
+score_ranges:
+  - max: 0.40
+    canonical_class: NEUTRAL
+  - max: 0.80
+    canonical_class: SUGGESTIVE
+  - max: 0.95
+    canonical_class: NUDITY
+  - max: 1.00
+    canonical_class: EXPLICIT

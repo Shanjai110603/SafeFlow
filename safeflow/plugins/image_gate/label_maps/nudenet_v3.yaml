@@ -1,0 +1,17 @@
+backend_name: nudenet
+backend_version: "3.2.0"
+status: unverified   # Unverified until backend is installed and evaluated on benchmark
+mode: class_map
+native_class_mappings:
+  FEMALE_GENITALIA_EXPOSED: NUDITY
+  MALE_GENITALIA_EXPOSED: NUDITY
+  BUTTOCKS_EXPOSED: NUDITY
+  FEMALE_BREAST_EXPOSED: NUDITY
+  ANUS_EXPOSED: NUDITY
+  FEMALE_BREAST_COVERED: SUGGESTIVE
+  BUTTOCKS_COVERED: SUGGESTIVE
+  BELLY_COVERED: NEUTRAL
+  BELLY_EXPOSED: NEUTRAL
+  FEET_EXPOSED: NEUTRAL
+  FACE_FEMALE: NEUTRAL
+  FACE_MALE: NEUTRAL

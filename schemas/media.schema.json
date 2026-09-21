@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "GateDecision": {
+      "enum": [
+        "ALLOW",
+        "ALLOW_TAGGED",
+        "REVIEW",
+        "BLOCK"
+      ],
+      "title": "GateDecision",
+      "type": "string"
+    },
+    "MediaRole": {
+      "enum": [
+        "avatar",
+        "banner",
+        "post_media"
+      ],
+      "title": "MediaRole",
+      "type": "string"
+    },
+    "MediaTag": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Canonical schema semantic version",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "name": {
+          "description": "Internal tag name, e.g. suggestive_presentation",
+          "title": "Name",
+          "type": "string"
+        },
+        "applied_at": {
+          "format": "date-time",
+          "title": "Applied At",
+          "type": "string"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "TTL expiration for tag",
+          "title": "Expires At"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "MediaTag",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Visual or uploaded media item.",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Canonical schema semantic version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "media_id": {
+      "title": "Media Id",
+      "type": "string"
+    },
+    "actor_id": {
+      "title": "Actor Id",
+      "type": "string"
+    },
+    "role": {
+      "$ref": "#/$defs/MediaRole",
+      "default": "avatar"
+    },
+    "perceptual_hashes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Perceptual hashes: phash, dhash, whash, mirror_phash",
+      "title": "Perceptual Hashes",
+      "type": "object"
+    },
+    "embedding_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Embedding Ref"
+    },
+    "gate_result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GateDecision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "tags": {
+      "items": {
+        "$ref": "#/$defs/MediaTag"
+      },
+      "title": "Tags",
+      "type": "array",
+      "visibility": "analyst"
+    }
+  },
+  "required": [
+    "media_id",
+    "actor_id"
+  ],
+  "title": "Media",
+  "type": "object"
+}

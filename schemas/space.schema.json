@@ -1,0 +1,96 @@
+{
+  "$defs": {
+    "AudienceContext": {
+      "enum": [
+        "general",
+        "mixed",
+        "youth_oriented",
+        "adult_only"
+      ],
+      "title": "AudienceContext",
+      "type": "string"
+    },
+    "PopularityMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Canonical schema semantic version",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "raw_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Raw Count",
+          "type": "integer"
+        },
+        "percentile": {
+          "default": 0.0,
+          "description": "Platform-normalized percentile (0-100)",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Percentile",
+          "type": "number"
+        }
+      },
+      "title": "PopularityMetric",
+      "type": "object"
+    },
+    "SpaceKind": {
+      "enum": [
+        "video",
+        "thread",
+        "channel",
+        "community",
+        "server",
+        "post",
+        "other"
+      ],
+      "title": "SpaceKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Contextual container (video, thread, channel, server).",
+  "properties": {
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Canonical schema semantic version",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "space_id": {
+      "title": "Space Id",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/SpaceKind"
+    },
+    "parent_space_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Space Id"
+    },
+    "popularity": {
+      "$ref": "#/$defs/PopularityMetric"
+    },
+    "audience_context": {
+      "$ref": "#/$defs/AudienceContext",
+      "default": "general"
+    }
+  },
+  "required": [
+    "space_id",
+    "kind"
+  ],
+  "title": "Space",
+  "type": "object"
+}

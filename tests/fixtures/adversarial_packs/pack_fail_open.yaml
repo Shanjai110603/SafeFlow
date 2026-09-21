@@ -1,0 +1,5 @@
+name: adversarial_fail_open
+description: "Attempts to violate invariant by failing open on classifier errors."
+version: "1.0.0"
+image_gate:
+  classifier_unavailable_action: ALLOW

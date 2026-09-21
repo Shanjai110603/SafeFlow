@@ -1,0 +1,5 @@
+backend_name: mock_classifier
+backend_version: "1.0.0"
+status: verified
+mode: direct
+description: "Direct mapping for procedural mock classifier in tests and local demo."
