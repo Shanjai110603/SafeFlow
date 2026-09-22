@@ -9,7 +9,7 @@ This living document tracks milestone completion, test results, and pre-register
 - [x] **Milestone 0: Foundations, Governance & Architecture** (Gate 0: PASSED)
 - [x] **Milestone 1: Core Skeleton & Profile Image Safety Gate** (Gate 1: PASSED)
 - [x] **Milestone 2: Synthetic Generator & Platform Profiles** (Gate 2: PASSED)
-- [ ] **Milestone 3: Signal Plugins Suite** (Gate 3: PENDING)
+- [x] **Milestone 3: Signal Plugins Suite** (Gate 3: PASSED)
 - [ ] **Milestone 4: Graph & Clustering Engine** (Gate 4: PENDING)
 - [ ] **Milestone 5: Explainable Decision Engine** (Gate 5: PENDING)
 - [ ] **Milestone 6: Evaluation Framework & Ablations** (Gate 6: PENDING)
@@ -114,4 +114,21 @@ Perceptual hash distances ($64$-bit dHash, wHash, and pHash) evaluated against p
 - [x] **Mock Destinations**: All external destinations are mock `*.local` domains with redirect chains, shorteners, cloaking, and activation delay.
 - [x] **CLI Commands**: `safeflow generate` and `safeflow validate-dataset` operational.
 - [x] **Full Regression Suite**: 44/44 pytest tests pass cleanly in 36s.
+
+---
+
+## Gate 3 Checklist: Signal Plugins Suite (VERIFIED & PASSED)
+
+- [x] **Media Reuse Plugin (`IMAGE_LINK`)**: Multi-algorithm perceptual hash clustering (pHash/dHash/wHash) with popularity discounting (IDF attenuation for viral memes/defaults) and capped AI-likelihood signal.
+- [x] **Text Behavior Plugin (`BEHAVIOR`)**: Token diversity (TTR), exact duplicate repetition rate, pure-Python TF-IDF semantic cosine similarity, burst velocity, and temporal trajectory dormancy anomaly (Sentinel-style).
+- [x] **Targeting Plugin (`TARGETING`)**: Concentration on high-popularity spaces normalized by space-popularity percentile, and bipartite co-targeting risk ratio tested against chance (RCAT-style).
+- [x] **Link Destination Plugin (`DESTINATION`)**: Redirect chain depth, shortener presence, synthetic domain category risk, cloaking flag, and activation delay.
+- [x] **Actor Profile Plugin (`PROFILE_CHANGE`)**: Homoglyph and zero-width density, bio link callout pattern matching, and profile edit counts.
+- [x] **Curiosity Funnel Verification**: Normal comments in a curiosity funnel account yield a low comment-anomaly score (< 0.50).
+- [x] **Legitimate Avatar Reuse Discounting**: Benign viral meme reuse yields a low reuse score (< 0.40) via IDF-style popularity discounting.
+- [x] **Normal High Engagement Control**: Organic super-users targeting popular spaces do not fire high targeting risk ratios (< 0.50).
+- [x] **Cross-Profile & Cross-Variant Matrices**: Feature signals build cleanly across all 3 platform profiles (`video_comments`, `forum_communities`, `chat_servers`) and both Variants (A and B).
+- [x] **Protocol & Boundary Enforcement**: All plugins conform to `SignalPlugin` protocol, register in `PluginRegistry`, maintain strict zero-cross-import boundaries, and core imports zero plugin implementations.
+- [x] **Full Test Suite**: 54/54 pytest tests pass cleanly in 55s.
+
 

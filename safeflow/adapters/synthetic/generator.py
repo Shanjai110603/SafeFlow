@@ -248,10 +248,10 @@ class SyntheticGenerator:
 
                 elif cat == LegitCategory.NORMAL_HIGH_ENGAGEMENT:
                     avatar = make_avatar(a_id, "NEUTRAL", pattern="rings", seed_offset=400 + i)
-                    # Frequent comments across several top spaces
+                    # Frequent organic comments across mixed leaf spaces
                     for _ in range(self.rng.randint(6, 12)):
                         content_counter += 1
-                        sp = self.rng.choice(top_spaces)
+                        sp = self.rng.choice(leaf_spaces)
                         c_text = self.profile.sample_benign_comments(1, self.rng, variant=self.config.variant)[0]
                         c_id = f"cnt_{_hash_id(f'{a_id}_{content_counter}_{self.rng.random()}', self.salt)}"
                         dataset.content.append(Content(content_id=c_id, actor_id=a_id, space_id=sp.space_id, kind=self.profile.content_kind, text=c_text, created_at=created_dt))
