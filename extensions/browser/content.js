@@ -31,7 +31,7 @@
 
         a.addEventListener("click", (e) => {
           const confirmNav = confirm(
-            "⚠️ SafeFlow Defensive Shield Warning:\n\n" +
+            "SafeFlow Defensive Shield Warning:\n\n" +
             "This link matches a high-risk multi-hop redirection funnel pattern.\n" +
             "Destination: " + href + "\n\n" +
             "Are you sure you want to proceed?"

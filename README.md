@@ -12,19 +12,19 @@ SafeFlow provides modular, multi-modal detection components (profile-image safet
 
 ---
 
-### 📚 Documentation Hub
+### Documentation Hub
 
 | Section | Description | Document Link |
 |---|---|---|
-| **System Architecture** | Multi-hop pathway topology, signal extractors & pipeline specs | 📖 [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| **Research Report** | Benchmark evaluation, prevalence adjustments & transfer matrices | 📊 [RESEARCH_REPORT.md](docs/RESEARCH_REPORT.md) |
-| **Limitations & Scope** | Perceptual hashing invariant bounds & responsible disclosure | ⚠️ [LIMITATIONS.md](docs/LIMITATIONS.md) |
-| **Threat Model** | Redirection funnels, actor evasion tactics & attack surfaces | 🛡️ [THREAT_MODEL.md](docs/THREAT_MODEL.md) |
-| **Responsible Research** | Ethical commitments, zero-harm data rules & stop-and-report protocol | ⚖️ [RESPONSIBLE_RESEARCH.md](docs/RESPONSIBLE_RESEARCH.md) |
-| **Image Safety Policy** | Policy pack configs, hash-matching rules & analyst blur quotas | 🖼️ [IMAGE_POLICY.md](docs/IMAGE_POLICY.md) |
-| **Intended Use** | Non-adversarial defensive guidelines & prohibited applications | 📜 [INTENDED_USE.md](docs/INTENDED_USE.md) |
-| **Architecture Decisions** | Architectural Decision Records (ADRs) and design rationale | 🏛️ [DECISIONS.md](docs/DECISIONS.md) |
-| **Prior Art & Licenses** | Research lineage, baseline methods & third-party dependency notices | 📑 [PRIOR_ART.md](docs/PRIOR_ART.md) |
+| **System Architecture** | Multi-hop pathway topology, signal extractors & pipeline specs | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **Research Report** | Benchmark evaluation, prevalence adjustments & transfer matrices | [RESEARCH_REPORT.md](docs/RESEARCH_REPORT.md) |
+| **Limitations & Scope** | Perceptual hashing invariant bounds & responsible disclosure | [LIMITATIONS.md](docs/LIMITATIONS.md) |
+| **Threat Model** | Redirection funnels, actor evasion tactics & attack surfaces | [THREAT_MODEL.md](docs/THREAT_MODEL.md) |
+| **Responsible Research** | Ethical commitments, zero-harm data rules & stop-and-report protocol | [RESPONSIBLE_RESEARCH.md](docs/RESPONSIBLE_RESEARCH.md) |
+| **Image Safety Policy** | Policy pack configs, hash-matching rules & analyst blur quotas | [IMAGE_POLICY.md](docs/IMAGE_POLICY.md) |
+| **Intended Use** | Non-adversarial defensive guidelines & prohibited applications | [INTENDED_USE.md](docs/INTENDED_USE.md) |
+| **Architecture Decisions** | Architectural Decision Records (ADRs) and design rationale | [DECISIONS.md](docs/DECISIONS.md) |
+| **Prior Art & Licenses** | Research lineage, baseline methods & third-party dependency notices | [PRIOR_ART.md](docs/PRIOR_ART.md) |
 
 ---
 
