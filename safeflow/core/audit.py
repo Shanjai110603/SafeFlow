@@ -23,7 +23,8 @@ AuditEventType = Literal[
     "REVIEW_DECISION",
     "APPEAL_SUBMITTED",
     "TAG_EXPIRED",
-    "RESCAN_TRIGGERED"
+    "RESCAN_TRIGGERED",
+    "ACTOR_DATA_PURGED"
 ]
 
 

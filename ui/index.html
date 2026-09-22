@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeFlow Trust & Safety Console</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="logo-icon">🛡️</div>
+        <div class="brand-text">
+          <h1>SafeFlow</h1>
+          <span class="badge live-badge">ENGINE ACTIVE</span>
+        </div>
+      </div>
+      
+      <div class="header-controls">
+        <div class="control-item">
+          <label for="policy-select">Policy Pack:</label>
+          <select id="policy-select" class="select-input">
+            <option value="general_video_platform" selected>general_video_platform</option>
+            <option value="youth_oriented_service">youth_oriented_service</option>
+            <option value="adult_permitted_platform">adult_permitted_platform</option>
+          </select>
+        </div>
+
+        <div class="control-item quota-pill">
+          <span class="quota-label">Session Reveals:</span>
+          <span id="reveal-quota" class="quota-value">0 / 10</span>
+        </div>
+
+        <div class="user-profile">
+          <div class="avatar-placeholder">AN</div>
+          <span class="analyst-name">Analyst: Tier-2 Lead</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <!-- Left Panel: Triage Queue -->
+      <aside class="sidebar-queue">
+        <div class="queue-header">
+          <h2>Triage Alert Queue</h2>
+          <span id="queue-count" class="badge count-badge">4 Alerts</span>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="CRITICAL">Critical</button>
+          <button class="filter-btn" data-filter="HIGH">High</button>
+          <button class="filter-btn" data-filter="LOW">Low</button>
+        </div>
+
+        <div id="queue-list" class="queue-list">
+          <!-- Dynamically populated queue items -->
+        </div>
+      </aside>
+
+      <!-- Right Panel: Deep-Dive Inspector -->
+      <section class="inspector">
+        <div id="inspector-content" class="inspector-grid">
+          <!-- Main Actor Assessment Card -->
+          <div class="card assessment-card">
+            <div class="card-header">
+              <div class="actor-title">
+                <span class="label">INVESTIGATING ACTOR</span>
+                <h3 id="current-actor-id">actor_7a8f9c2d1b</h3>
+              </div>
+              <div id="risk-badge-large" class="risk-badge risk-critical">CRITICAL RISK</div>
+            </div>
+
+            <div class="metrics-row">
+              <div class="metric-box">
+                <span class="metric-label">Composite Risk Score</span>
+                <div class="score-display">
+                  <span id="current-score" class="score-value">91.5</span>
+                  <span class="score-max">/ 100</span>
+                </div>
+              </div>
+
+              <div class="metric-box">
+                <span class="metric-label">Signal Families Triggered</span>
+                <div id="family-pills" class="family-pills">
+                  <span class="family-pill">IMAGE_LINK</span>
+                  <span class="family-pill">BEHAVIOR</span>
+                  <span class="family-pill">DESTINATION</span>
+                  <span class="family-pill">PROFILE_CHANGE</span>
+                </div>
+              </div>
+
+              <div class="metric-box full-width">
+                <span class="metric-label">Policy Recommendation</span>
+                <p id="policy-recommendation" class="policy-text">
+                  Suspend actor account, invalidate active sessions, and block associated destination URLs
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Safe Media Preview Card -->
+          <div class="card media-card">
+            <div class="card-header">
+              <h4>Profile Media Inspection</h4>
+              <span class="safe-badge">SAFE REVIEW MODE</span>
+            </div>
+
+            <div class="media-body">
+              <div class="media-preview-container">
+                <div id="blurred-preview" class="blurred-image-box">
+                  <div class="procedural-avatar-canvas" id="avatar-canvas"></div>
+                  <div class="blur-overlay" id="blur-overlay">
+                    <span class="lock-icon">🔒</span>
+                    <p class="blur-text">Image Blurred by Default</p>
+                    <button id="reveal-btn" class="reveal-button">Click to Reveal (Logged)</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="media-details">
+                <div class="detail-row">
+                  <span class="detail-name">pHash:</span>
+                  <code id="phash-val" class="code-val">0xf4e2c1a89b03df12</code>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-name">wHash:</span>
+                  <code id="whash-val" class="code-val">0x88f00a1b77c2e944</code>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-name">Tags:</span>
+                  <span id="tag-badge" class="tag-badge">suggestive_presentation (TTL: 28d)</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-name">Crop Evaluated:</span>
+                  <span class="val-text">Dual Crop (Circular avatar higher)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Explainability Drawer (Evidence vs Counter-Evidence) -->
+          <div class="card explanation-card">
+            <div class="card-header">
+              <h4>Structured Explanations</h4>
+              <span class="explain-badge">AUDIT READY</span>
+            </div>
+
+            <div class="explanation-columns">
+              <div class="exp-column evidence-col">
+                <h5>Elevated Risk Evidence</h5>
+                <ul id="evidence-list" class="bullet-list">
+                  <li>Shared perceptual hash with 14 other accounts across 3 spaces</li>
+                  <li>Text template repetition rate 95% with burst velocity 6.2 msgs/min</li>
+                  <li>Cloaked redirect chain to high-risk destination (*.local)</li>
+                  <li>Bio callout pattern encouraging off-platform redirection</li>
+                </ul>
+              </div>
+
+              <div class="exp-column counter-col">
+                <h5>Mitigating Counter-Evidence</h5>
+                <ul id="counter-evidence-list" class="bullet-list">
+                  <li>No mitigating counter-evidence identified across evaluated signals</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Network Coordination Graph -->
+          <div class="card graph-card">
+            <div class="card-header">
+              <h4>Coordinated Ring Graph Visualizer</h4>
+              <span class="graph-status">14 Connected Actors</span>
+            </div>
+
+            <div class="graph-viewport" id="graph-viewport">
+              <svg id="network-svg" width="100%" height="260"></svg>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -13,9 +13,73 @@ This living document tracks milestone completion, test results, and pre-register
 - [x] **Milestone 4: Graph & Clustering Engine** (Gate 4: PASSED)
 - [x] **Milestone 5: Explainable Decision Engine** (Gate 5: PASSED)
 - [x] **Milestone 6: Evaluation Framework & Ablations** (Gate 6: PASSED)
-- [ ] **Milestone 7: Threat Simulation Lab & Link Verification Queue** (Gate 7: PENDING)
-- [ ] **Milestone 8: REST API, SDK, Exporters & Dashboard** (Gate 8: PENDING)
-- [ ] **Milestone 9: Privacy Controls, Reports & Packaging** (Gate 9: PENDING)
+- [x] **Milestone 7: Threat Simulation Lab & Link Verification Queue** (Gate 7: PASSED)
+- [x] **Milestone 8: REST API, SDK, Exporters & Dashboard** (Gate 8: PASSED)
+- [x] **Milestone 9: Privacy Controls, Reports & Packaging** (Gate 9: PASSED)
+
+---
+
+## Gate 7 Checklist: Threat Simulation Lab & Link Verification Queue (VERIFIED & PASSED)
+
+- [x] **Adversarial Scenarios Implemented**:
+  - `curiosity_surge`: Rapid burst of suggestive avatars combined with bio redirection funnels.
+  - `cloaked_redirect_evasion`: Multi-hop redirect chains hiding behind shorteners.
+  - `dormant_hijack_burst`: Aged dormant accounts suddenly activated for coordinated link dissemination.
+- [x] **Simulated Clock Verification Queue**:
+  - Discrete event time progression (`advance_clock`, `enqueue`, `process_due_items`).
+  - Low-risk links release immediately (0 delay).
+  - High/Critical risk links held across parameterized review windows (5m, 15m, 30m, 60m, 120m).
+- [x] **Tradeoff Sweep Evaluation**:
+  - Evaluates attack interception rate vs legitimate creator friction.
+  - Evaluates delayed activation interception (catching destination cloaks activated after 15–30m).
+- [x] **CLI Command**: `safeflow simulate --scenario curiosity_surge --window 30` fully functional.
+- [x] **Regression Suite**: 79/79 pytest tests passing cleanly.
+
+---
+
+## Gate 8 Checklist: REST API, SDK, Exporters & Dashboard (VERIFIED & PASSED)
+
+- [x] **FastAPI Production Engine**:
+  - `POST /v1/gate`: Upload-time profile image safety gate evaluation.
+  - `POST /v1/evaluate`: Multi-signal actor risk scoring with signal-family gating and explanation generation.
+  - `POST /v1/graph/cluster`: Heterogeneous graph construction and Louvain community detection.
+  - `POST /v1/queue/links`: Link verification hold-and-triage queue processing.
+  - `POST /v1/review/reveal`: Analyst image un-blur triage with session reveal cap enforcement (max 10 reveals).
+  - `GET /v1/policies`: Active policy pack thresholds and safety invariants.
+  - `GET /v1/health` & `GET /v1/metrics`: System health, Prometheus-compatible signal telemetry, and uptime.
+- [x] **SafeFlow Python SDK (`SafeFlowClient`)**: Ergonomic client wrapping all REST endpoints with automatic response models.
+- [x] **Standard Exporters**:
+  - `JSONLEventExporter`: Streaming event log generator for external SIEM integration.
+  - `WebhookDispatcher`: HMAC-SHA256 signature-verified webhook delivery.
+  - `TSCompatibilityFormatter`: Interoperable format converters for legacy moderation systems.
+- [x] **Analyst Web Dashboard (`ui/`)**:
+  - Modern, dark-mode responsive glassmorphic interface with zero external CSS frameworks.
+  - Default Gaussian-blurred image previews with logged reveal interactions.
+  - 10-reveal session quota tracker.
+  - Interactive force-directed network graph visualization (canvas-based).
+  - Real-time decision workbench and explainability inspector drawer.
+- [x] **CLI Command**: `safeflow serve --host 127.0.0.1 --port 8000` operational.
+- [x] **Regression Suite**: 84/84 pytest tests passing cleanly.
+
+---
+
+## Gate 9 Checklist: Privacy Controls, Reports & Final Packaging (VERIFIED & PASSED)
+
+- [x] **Right-to-be-Forgotten Deletion Cascade**:
+  - `PrivacyManager.delete_actor_data`: Irreversibly purges actor records, perceptual hashes, review tickets, appeals, and in-memory blobs.
+  - Cryptographic deletion event recorded in tamper-evident audit log with hashed subject identifiers.
+- [x] **GDPR/CCPA Subject Data Export**: `PrivacyManager.export_actor_data` returns structured, machine-readable JSON payloads.
+- [x] **Automated Research Report Generator**:
+  - `ResearchReportGenerator.generate_report`: Compiles benchmark metrics, prevalence reweighting, ablation summaries, cross-platform transfer matrices, and threat simulation curves into `docs/RESEARCH_REPORT.md`.
+  - Audit-stamped with active git commit hash and timestamp.
+- [x] **Portability & Extensibility**: Verified dynamic integration of a 4th throwaway platform profile (`microblog_stream`) with zero modifications to core engine or database schemas.
+- [x] **Limitations & Governance Documentation**: `docs/LIMITATIONS.md` published detailing perceptual hashing failure bounds, intentional platform-agnostic boundaries, and responsible disclosure protocols.
+- [x] **Interactive CLI Suite**:
+  - `safeflow demo --profile video_comments` (interactive terminal walkthrough).
+  - `safeflow report --out docs/RESEARCH_REPORT.md` (one-command research compilation).
+  - `safeflow data export` & `safeflow data delete` (privacy & GDPR compliance).
+- [x] **Full Regression Test Suite**: 88/88 pytest tests passing across all 9 milestones.
+
 
 ---
 

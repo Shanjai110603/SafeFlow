@@ -35,6 +35,25 @@ CANONICAL_FEATURE_ORDER = [
 ]
 
 
+FEATURE_ALIASES: dict[str, list[str]] = {
+    "media_max_reuse": ["media_reuse_score", "media_max_reuse"],
+    "media_suggestive_score": ["suggestive_presentation", "media_suggestive_score"],
+    "media_ai_likelihood": ["ai_generated_identity_score", "ai_likelihood", "media_ai_likelihood"],
+    "text_repetition_rate": ["text_repetition_rate", "duplicate_rate"],
+    "text_burst_velocity": ["text_burst_velocity", "burst_velocity"],
+    "text_dormancy_anomaly": ["text_dormancy_anomaly", "dormancy_anomaly"],
+    "targeting_percentile_conc": ["space_popularity_concentration", "targeting_percentile_conc"],
+    "targeting_bipartite_risk": ["targeting_risk_ratio", "targeting_bipartite_risk"],
+    "link_max_dest_risk": ["link_destination_risk", "link_max_dest_risk"],
+    "link_chain_depth": ["link_chain_depth", "redirect_depth"],
+    "link_uses_shortener": ["link_uses_shortener"],
+    "link_is_cloaked": ["link_is_cloaked", "cloaking_detected"],
+    "profile_homoglyph_density": ["profile_homoglyph_density"],
+    "profile_bio_callout_score": ["profile_bio_callout_score"],
+    "profile_edit_count": ["profile_edit_count"],
+}
+
+
 class CalibratedScorer:
     """Statistical classifier with Platt scaling / Sigmoid calibration and group-aware cross-validation."""
 
@@ -52,7 +71,10 @@ class CalibratedScorer:
 
         vector = np.zeros(len(self.feature_names), dtype=np.float32)
         for idx, name in enumerate(self.feature_names):
-            vector[idx] = feat_dict.get(name, 0.0)
+            # Check exact match or aliases
+            aliases = FEATURE_ALIASES.get(name, [name])
+            val = max([feat_dict.get(a, 0.0) for a in aliases] + [0.0])
+            vector[idx] = val
         return vector
 
     def fit(
@@ -70,39 +92,38 @@ class CalibratedScorer:
         )
 
         n_samples = len(y)
-        if n_samples < 10:
-            # Fallback for minimal synthetic runs
+        n_pos = int(np.sum(y == 1))
+        n_neg = int(np.sum(y == 0))
+
+        if n_samples < 10 or n_pos < 2 or n_neg < 2:
+            # Fallback for single class or minimal samples
             base_lr.fit(X, y)
             self.model = base_lr
             self.is_fitted = True
             return self
 
         # Determine CV strategy
+        valid_splits = None
         if groups is not None and len(np.unique(groups)) >= 3:
             k = min(3, len(np.unique(groups)))
             gkf = GroupKFold(n_splits=k)
-            cv_splits = list(gkf.split(X, y, groups=groups))
-            calibrated = CalibratedClassifierCV(
-                estimator=base_lr,
-                method="sigmoid",
-                cv=cv_splits,
-            )
-            calibrated.fit(X, y)
-            self.model = calibrated
-        else:
-            n_pos = int(np.sum(y == 1))
-            n_neg = int(np.sum(y == 0))
+            candidate_splits = list(gkf.split(X, y, groups=groups))
+            # Check if all training folds contain at least 2 classes
+            if all(len(np.unique(y[tr])) >= 2 for tr, te in candidate_splits):
+                valid_splits = candidate_splits
+
+        if valid_splits is None:
             k = max(2, min(3, min(n_pos, n_neg)))
             skf = StratifiedKFold(n_splits=k)
-            cv_splits = list(skf.split(X, y))
-            calibrated = CalibratedClassifierCV(
-                estimator=base_lr,
-                method="sigmoid",
-                cv=cv_splits,
-            )
-            calibrated.fit(X, y)
-            self.model = calibrated
+            valid_splits = list(skf.split(X, y))
 
+        calibrated = CalibratedClassifierCV(
+            estimator=base_lr,
+            method="sigmoid",
+            cv=valid_splits,
+        )
+        calibrated.fit(X, y)
+        self.model = calibrated
         self.is_fitted = True
 
         # Extract average coefficients for explanation

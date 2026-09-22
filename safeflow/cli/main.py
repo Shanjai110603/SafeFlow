@@ -217,6 +217,154 @@ def eval_command(
     typer.echo(f"  - summary.md\n")
 
 
+@app.command(name="simulate")
+def simulate_command(
+    scenario: str = typer.Option("curiosity_surge", "--scenario", "-s", help="Threat scenario kind."),
+    window: int = typer.Option(30, "--window", "-w", help="Link queue hold window in minutes."),
+    samples: int = typer.Option(100, "--samples", "-n", help="Number of simulated actors."),
+    out: Path = typer.Option(Path("results"), "--out", "-o", help="Output directory."),
+) -> None:
+    """Run interactive Threat Simulation Lab and evaluate queue tradeoffs."""
+    from safeflow.lab.simulator import ThreatSimulationLab
+
+    typer.echo(f"Running Threat Simulation Lab [scenario={scenario}, window={window}m, samples={samples}]...")
+    report = ThreatSimulationLab.run_scenario_tradeoff_sweep(
+        scenario=scenario,
+        sample_size=samples,
+        windows=[5, 15, 30, 60, 120],
+    )
+
+    typer.echo("\n=======================================================")
+    typer.echo(f" SafeFlow Threat Simulation Report: {scenario}")
+    typer.echo("=======================================================")
+    typer.echo("Window (min) | Attack Intercept | Creator Delay | Delayed Intercept")
+    typer.echo("-------------|------------------|---------------|------------------")
+    for p in report.points:
+        typer.echo(
+            f"{p.window_minutes:12d} | {p.attack_interception_rate:16.2%} | {p.creator_delay_rate:13.2%} | {p.delayed_activation_interception_rate:17.2%}"
+        )
+    typer.echo("=======================================================")
+    typer.echo(f"Recommendation: {report.recommendation}\n")
+
+
+@app.command(name="serve")
+def serve_command(
+    host: str = typer.Option("127.0.0.1", "--host", "-h", help="Host binding address."),
+    port: int = typer.Option(8000, "--port", "-p", help="Port to listen on."),
+    reload: bool = typer.Option(False, "--reload", "-r", help="Enable auto-reload."),
+) -> None:
+    """Start the SafeFlow FastAPI REST API and Investigation Console service."""
+    import uvicorn
+
+    typer.echo(f"Starting SafeFlow REST API & T&S Console on http://{host}:{port} ...")
+    typer.echo(f"  - OpenAPI Interactive Docs: http://{host}:{port}/docs")
+    typer.echo(f"  - OpenAPI JSON Spec:        http://{host}:{port}/openapi.json")
+    uvicorn.run("safeflow.api.app:app", host=host, port=port, reload=reload)
+
+
+data_app = typer.Typer(name="data", help="Privacy, GDPR/CCPA data deletion and export commands.")
+app.add_typer(data_app, name="data")
+
+
+@data_app.command(name="delete")
+def data_delete_command(
+    actor: str = typer.Option(..., "--actor", "-a", help="Actor ID to purge."),
+) -> None:
+    """Irreversibly delete all stored data, media references, and signals for an actor."""
+    from safeflow.privacy.manager import PrivacyManager
+
+    typer.echo(f"Executing right-to-be-forgotten deletion cascade for actor '{actor}'...")
+    res = PrivacyManager.delete_actor_data(actor_id=actor)
+    typer.echo("Deletion Cascade COMPLETED:")
+    typer.echo(f"  - Status: {res['status']}")
+    for entity, count in res["deleted_entities"].items():
+        typer.echo(f"  - {entity.capitalize()}: {count} purged")
+
+
+@data_app.command(name="export")
+def data_export_command(
+    actor: str = typer.Option(..., "--actor", "-a", help="Actor ID to export."),
+) -> None:
+    """Export all stored data for an actor as structured GDPR/CCPA compliant JSON."""
+    from safeflow.privacy.manager import PrivacyManager
+
+    res = PrivacyManager.export_actor_data(actor_id=actor)
+    typer.echo(json.dumps(res, indent=2))
+
+
+@app.command(name="report")
+def report_command(
+    out: Path = typer.Option(Path("docs/RESEARCH_REPORT.md"), "--out", "-o", help="Output report file path."),
+    seed: int = typer.Option(42, "--seed", "-s", help="Benchmark seed."),
+    samples: int = typer.Option(100, "--samples", "-n", help="Actor count per profile."),
+) -> None:
+    """Generate a publication-ready markdown research report."""
+    from safeflow.report.generator import ResearchReportGenerator
+
+    typer.echo(f"Compiling SafeFlow Research Report to {out} (seed={seed}, samples={samples})...")
+    ResearchReportGenerator.generate_report(out_file=out, seed=seed, sample_actors=samples)
+    typer.echo(f"Research Report successfully compiled: {out}\n")
+
+
+@app.command(name="demo")
+def demo_command(
+    profile: str = typer.Option("video_comments", "--profile", "-p", help="Platform profile to demonstrate."),
+) -> None:
+    """Run an interactive 20-actor CLI demo walkthrough."""
+    from safeflow.adapters.synthetic.generator import SyntheticGenerator
+    from safeflow.adapters.synthetic.models import GeneratorConfig
+    from safeflow.core.decision.engine import DecisionEngine
+    from safeflow.plugins.media_reuse import MediaReusePlugin
+    from safeflow.plugins.text_behavior import TextBehaviorPlugin
+    from safeflow.plugins.targeting import TargetingPlugin
+    from safeflow.plugins.link_destination import LinkDestinationPlugin
+    from safeflow.plugins.actor_profile import ActorProfilePlugin
+
+    typer.echo(f"\n=======================================================")
+    typer.echo(f" SafeFlow Interactive 20-Actor Demo [{profile}]")
+    typer.echo("=======================================================\n")
+
+    cfg = GeneratorConfig(seed=42, variant="A", platform_profile=profile, actor_count=20)  # type: ignore[arg-type]
+    ds = SyntheticGenerator(cfg).generate()
+
+    plugins = [
+        MediaReusePlugin(),
+        TextBehaviorPlugin(),
+        TargetingPlugin(),
+        LinkDestinationPlugin(),
+        ActorProfilePlugin(),
+    ]
+    ctx = {
+        "actors": ds.actors,
+        "content": ds.content,
+        "media": ds.media,
+        "spaces": ds.spaces,
+        "links": ds.links,
+    }
+
+    all_signals = []
+    for p in plugins:
+        all_signals.extend(p.run(batch=ds.actors, context=ctx))
+
+    engine = DecisionEngine()
+    for idx, actor in enumerate(ds.actors):
+        actor_sigs = [s for s in all_signals if s.subject_type == "actor" and s.subject_id == actor.actor_id]
+        dec = engine.evaluate_actor(actor.actor_id, actor_sigs)
+        gt = ds.ground_truth.get(actor.actor_id)
+        gt_cat = gt.category if gt else "NORMAL"
+
+        color_prefix = "[CRITICAL]" if dec.level.value == "CRITICAL" else f"[{dec.level.value}]"
+        typer.echo(f"{idx + 1:2d}. {actor.actor_id} | GT: {gt_cat:22s} | Risk: {color_prefix:10s} (Score: {dec.score:5.1f})")
+        if dec.level.value in ("HIGH", "CRITICAL"):
+            typer.echo(f"    Action: {dec.recommended_action}")
+            for ev in dec.evidence[:2]:
+                typer.echo(f"    - {ev}")
+
+    typer.echo("\n=======================================================")
+    typer.echo(" Demo finished. Try `safeflow serve` to inspect in UI.")
+    typer.echo("=======================================================\n")
+
+
 if __name__ == "__main__":
     app()
 
