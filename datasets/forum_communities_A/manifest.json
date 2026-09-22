@@ -1,0 +1,27 @@
+{
+  "generator_version": "1.0.0",
+  "seed": 42,
+  "variant": "A",
+  "platform_profile": "forum_communities",
+  "base_rate": 0.05,
+  "actor_count": 1000,
+  "entity_counts": {
+    "actors": 1000,
+    "spaces": 110,
+    "content": 3888,
+    "media": 843,
+    "links": 208,
+    "relations": 0
+  },
+  "file_checksums_sha256": {
+    "actors.jsonl": "40f45da6cc4e965065b629d8865e092948c6fa6a68f452fe436c7c3c37d4f0f5",
+    "content.jsonl": "22587dc5af07b158332ccfd030b61ae730046cea66be403629304fa5b3fa226c",
+    "dataset.jsonl": "441c21f4745b78f83929cc632aabd8e7d65b22b92c5c498be603ec386e3df16c",
+    "links.jsonl": "0af7b54eda652bd46258e0af2fca4665e11014f87b65134fb9d24fd24d9ec286",
+    "media.jsonl": "390f46fb56707f0361c030c4395848e490ab378f76e30f245a25599c7ea32d13",
+    "relations.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "spaces.jsonl": "86e9c64f89724fb5f4de4053221e1d972664d73739db9fc5ef3305d89b115ecc",
+    "synthetic_forum_communities_A.db": "dbfc0fbb9108393e7ded28b14bb03de1fc403ce18c1537b78a642f264963bde3"
+  },
+  "exported_at": "2026-09-22T05:35:10.524253+00:00"
+}

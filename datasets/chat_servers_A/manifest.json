@@ -1,0 +1,27 @@
+{
+  "generator_version": "1.0.0",
+  "seed": 42,
+  "variant": "A",
+  "platform_profile": "chat_servers",
+  "base_rate": 0.05,
+  "actor_count": 1000,
+  "entity_counts": {
+    "actors": 1000,
+    "spaces": 108,
+    "content": 3893,
+    "media": 843,
+    "links": 208,
+    "relations": 0
+  },
+  "file_checksums_sha256": {
+    "actors.jsonl": "c3983cbe5a547a6d27cdd44d8647b70c6bceaecae6fc30eb1f5a937069770528",
+    "content.jsonl": "b0952359da0fca14afce190409850698e4c496b44b9735e4ebc6bcf39cf48647",
+    "dataset.jsonl": "b2d318ee9fcce704e28c2cba1b0b4a3e8ccba6a6b33198f4fd61ef44efe19afe",
+    "links.jsonl": "3038c7eae071c0fa4f05738ce2163d28966b65d26343a4bc1e964914c53c66c8",
+    "media.jsonl": "a46a10e22aaf8385650b68ec9cdfbc45d3b5b886899abf1d7853253aba66cf24",
+    "relations.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "spaces.jsonl": "c863b0684b0bf9057bb762a80a009b4e34016dc8344ce14a974b78a721433bfd",
+    "synthetic_chat_servers_A.db": "35fac3ae36f7a30e7abd5251f161feee25d948a9ca8465cf09af763bf0fe6dfa"
+  },
+  "exported_at": "2026-09-22T06:00:12.475001+00:00"
+}

@@ -119,17 +119,66 @@ def schema_command(
         typer.echo(f"  - {p}")
 
 
-@app.command(name="db")
-def db_command(
-    action: str = typer.Argument("init", help="Action: 'init'"),
-    db_url: str = typer.Option("sqlite:///safeflow.db", "--db", help="Database connection URL."),
+@app.command(name="generate")
+def generate_command(
+    profile: str = typer.Option("video_comments", "--profile", "-p", help="Platform profile: video_comments, forum_communities, chat_servers."),
+    variant: str = typer.Option("A", "--variant", "-v", help="Dataset variant: 'A' (dev) or 'B' (held-out)."),
+    seed: int = typer.Option(42, "--seed", "-s", help="Deterministic RNG seed."),
+    actors: int = typer.Option(1000, "--actors", "-n", help="Total actors to generate."),
+    base_rate: float = typer.Option(0.05, "--base-rate", "-b", help="Attack base rate (0.05 = 5%)."),
+    out: Path = typer.Option(Path("datasets"), "--out", "-o", help="Output directory for generated dataset."),
 ) -> None:
-    """Manage SafeFlow database."""
-    if action == "init":
-        db = DatabaseManager(db_url)
-        typer.echo(f"Initialized database schema at {db_url}.")
-    else:
-        typer.echo(f"Unknown db action '{action}'.", err=True)
+    """Generate deterministic synthetic datasets across platform profiles."""
+    from safeflow.adapters.synthetic.generator import SyntheticGenerator
+    from safeflow.adapters.synthetic.models import GeneratorConfig
+    from safeflow.adapters.synthetic.exporter import DatasetExporter
+
+    target_dir = out / f"{profile}_{variant}"
+    cfg = GeneratorConfig(
+        seed=seed,
+        variant=variant,  # type: ignore[arg-type]
+        platform_profile=profile,  # type: ignore[arg-type]
+        actor_count=actors,
+        base_rate=base_rate,
+    )
+
+    typer.echo(f"Generating synthetic dataset [profile={profile}, variant={variant}, seed={seed}, actors={actors}]...")
+    gen = SyntheticGenerator(cfg)
+    dataset = gen.generate()
+
+    manifest = DatasetExporter.export(dataset, target_dir)
+    typer.echo(f"Exported dataset successfully to {target_dir}:")
+    typer.echo(f"  - Manifest: {target_dir / 'manifest.json'}")
+    typer.echo(f"  - SQLite DB: {target_dir / f'synthetic_{profile}_{variant}.db'}")
+    for ent, count in manifest["entity_counts"].items():
+        typer.echo(f"  - {ent.capitalize()}: {count}")
+
+
+@app.command(name="validate-dataset")
+def validate_dataset_command(
+    dir: Path = typer.Option(..., "--dir", "-d", help="Directory containing dataset JSONL files."),
+) -> None:
+    """Validate a synthetic dataset directory against canonical schemas."""
+    from safeflow.adapters.generic_jsonl.validator import GenericJSONLValidator
+
+    if not dir.exists():
+        typer.echo(f"Error: Directory not found: {dir}", err=True)
+        raise typer.Exit(code=1)
+
+    dataset_jsonl = dir / "dataset.jsonl"
+    if not dataset_jsonl.exists():
+        typer.echo(f"Error: {dataset_jsonl} not found in {dir}.", err=True)
+        raise typer.Exit(code=1)
+
+    typer.echo(f"Validating canonical schema for {dataset_jsonl}...")
+    try:
+        counts = GenericJSONLValidator.validate_file(dataset_jsonl)
+        typer.echo("Schema Validation PASSED (100% compliant with schema_version 1.0.0):")
+        for ent, count in counts.items():
+            if count > 0:
+                typer.echo(f"  - {ent}: {count} valid records")
+    except Exception as e:
+        typer.echo(f"Validation FAILED: {e}", err=True)
         raise typer.Exit(code=1)
 
 

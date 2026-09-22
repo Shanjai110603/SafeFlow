@@ -1,0 +1,27 @@
+{
+  "generator_version": "1.0.0",
+  "seed": 42,
+  "variant": "A",
+  "platform_profile": "video_comments",
+  "base_rate": 0.05,
+  "actor_count": 1000,
+  "entity_counts": {
+    "actors": 1000,
+    "spaces": 110,
+    "content": 3871,
+    "media": 843,
+    "links": 208,
+    "relations": 0
+  },
+  "file_checksums_sha256": {
+    "actors.jsonl": "7a323b96ef5e1a063a42f2da5049750498949cb6ff9287af8544c7c306805fd9",
+    "content.jsonl": "d672cbf5a8142834afd503f0ffd2a8d766340981f70f03373c836445d639a0ba",
+    "dataset.jsonl": "3d7e4e6c48594651f8c77cd75149be4e38620353d9a1f3d02da9daad77f539c8",
+    "links.jsonl": "2e59f5f3a5e43a7a7af8f67763b1f78a50d46fd2954ddefa59e8aba32ca441bb",
+    "media.jsonl": "d66ac2cfcb68a89027731b97e180ff7d34768a909f2bfe1de047391d6c885dce",
+    "relations.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "spaces.jsonl": "ae0e1b783fd63998d3eab47e8cf32a53503d998c6b5046288e9e3f0b7a44adbc",
+    "synthetic_video_comments_A.db": "3b13ad3d18818f42beb47a6afdfc7f49fb15ce7817020ab67d38cc38c5cebd5a"
+  },
+  "exported_at": "2026-09-22T05:28:35.234838+00:00"
+}

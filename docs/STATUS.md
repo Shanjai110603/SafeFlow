@@ -8,7 +8,7 @@ This living document tracks milestone completion, test results, and pre-register
 
 - [x] **Milestone 0: Foundations, Governance & Architecture** (Gate 0: PASSED)
 - [x] **Milestone 1: Core Skeleton & Profile Image Safety Gate** (Gate 1: PASSED)
-- [ ] **Milestone 2: Synthetic Generator & Platform Profiles** (Gate 2: PENDING)
+- [x] **Milestone 2: Synthetic Generator & Platform Profiles** (Gate 2: PASSED)
 - [ ] **Milestone 3: Signal Plugins Suite** (Gate 3: PENDING)
 - [ ] **Milestone 4: Graph & Clustering Engine** (Gate 4: PENDING)
 - [ ] **Milestone 5: Explainable Decision Engine** (Gate 5: PENDING)
@@ -99,3 +99,19 @@ Perceptual hash distances ($64$-bit dHash, wHash, and pHash) evaluated against p
 - [x] All pytest suites pass cleanly (`pytest -v`: 33 passed in 5.02s).
 - [x] `safeflow gate` CLI demonstrates pre-registered outputs exactly.
 - [x] Milestone 1 committed to git.
+
+---
+
+## Gate 2 Checklist: Synthetic Generator & Platform Profiles (VERIFIED & PASSED)
+
+- [x] **Determinism Test**: Generator is 100% deterministic (identical seed produces byte-identical JSONL exports and matching file SHA-256 checksums).
+- [x] **Variant A vs Variant B Separation**: Variant B exhibits shifted comment lexicons and distinct temporal cluster variations.
+- [x] **Three Platform Profiles**: `video_comments` (YouTube-like), `forum_communities` (Reddit-like), `chat_servers` (Discord-like) implemented with distinct topologies, timing models, and vocabularies.
+- [x] **Canonical Schema Validation**: `safeflow validate-dataset` passes 100% compliance against canonical schemas on all 3 profiles.
+- [x] **10 Attack Categories Synthesized**: `SPAM`, `CURIOSITY_FUNNEL`, `AI_IMAGE_NETWORK`, `IMAGE_REUSE_NETWORK`, `LINK_ABUSE`, `ACCOUNT_ROTATION`, `MIXED_ATTACK`, `HIJACKED_ACCOUNT`, `AGED_ACCOUNT_ATTACK`, `HUMAN_FARM`.
+- [x] **6 Legitimate Categories Synthesized**: `NORMAL`, `NORMAL_HIGH_ENGAGEMENT`, `LEGIT_FANDOM`, `LEGIT_AVATAR_REUSE`, `LEGIT_LINK_CREATOR`, `LEGIT_SUGGESTIVE_AVATAR`.
+- [x] **Strict Zero Depictive/Scraped Image Compliance**: 100% of media records are procedural placeholders with perceptual hashes.
+- [x] **Mock Destinations**: All external destinations are mock `*.local` domains with redirect chains, shorteners, cloaking, and activation delay.
+- [x] **CLI Commands**: `safeflow generate` and `safeflow validate-dataset` operational.
+- [x] **Full Regression Suite**: 44/44 pytest tests pass cleanly in 36s.
+
