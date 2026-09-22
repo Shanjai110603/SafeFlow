@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "SafeFlow Defensive Shield",
+  "version": "1.0.0",
+  "description": "Client-side protection against coordinated redirection funnels leading toward age-inappropriate destinations.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SafeFlow Shield"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

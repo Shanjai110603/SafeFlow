@@ -1,0 +1,41 @@
+name: SafeFlow Benchmark & Regression Gate
+
+on:
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  benchmark-gate:
+    name: Enforce F1 and PR-AUC Regression Baselines
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Run Benchmark Gate Evaluation
+        run: |
+          python -m safeflow.cli.main eval --profile video_comments --seed 42 --actors 150 --out results/
+
+      - name: Verify Baseline Thresholds
+        run: |
+          python -c "
+          import json
+          with open('results/metrics.json') as f:
+              data = json.load(f)
+          f1 = data['f1']
+          pr_auc = data['pr_auc']
+          print(f'Evaluated F1: {f1:.4f}, PR-AUC: {pr_auc:.4f}')
+          assert f1 >= 0.82, f'F1 Score {f1} is below baseline threshold 0.82'
+          assert pr_auc >= 0.85, f'PR-AUC {pr_auc} is below baseline threshold 0.85'
+          print('Benchmark Regression Gate: PASSED')
+          "

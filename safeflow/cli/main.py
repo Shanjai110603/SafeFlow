@@ -365,6 +365,34 @@ def demo_command(
     typer.echo("=======================================================\n")
 
 
+@app.command(name="stress")
+def stress_command(
+    concurrency: int = typer.Option(20, "--concurrency", "-c", help="Concurrent worker threads."),
+    requests: int = typer.Option(1000, "--requests", "-n", help="Total decision evaluations."),
+) -> None:
+    """Run concurrency and stress benchmarks to evaluate throughput and P99 latencies."""
+    from safeflow.lab.stress import SafeFlowStressTester
+
+    typer.echo(f"Starting SafeFlow High-Throughput Stress Test [concurrency={concurrency}, requests={requests}]...")
+    res = SafeFlowStressTester.run_decision_engine_benchmark(concurrency=concurrency, total_requests=requests)
+
+    typer.echo("\n=======================================================")
+    typer.echo(" SafeFlow Concurrency & Latency Benchmark")
+    typer.echo("=======================================================")
+    typer.echo(f"  - Total Requests: {res['total_requests']}")
+    typer.echo(f"  - Concurrency:    {res['concurrency']} threads")
+    typer.echo(f"  - Total Duration: {res['total_duration_sec']} s")
+    typer.echo(f"  - Throughput:     {res['throughput_rps']} req/s (RPS)")
+    typer.echo("-------------------------------------------------------")
+    typer.echo(f"  - Latency P50:    {res['latency_p50_ms']} ms")
+    typer.echo(f"  - Latency P90:    {res['latency_p90_ms']} ms")
+    typer.echo(f"  - Latency P95:    {res['latency_p95_ms']} ms")
+    typer.echo(f"  - Latency P99:    {res['latency_p99_ms']} ms")
+    typer.echo(f"  - Latency Mean:   {res['latency_mean_ms']} ms")
+    typer.echo(f"  - Latency Max:    {res['latency_max_ms']} ms")
+    typer.echo("=======================================================\n")
+
+
 if __name__ == "__main__":
     app()
 
