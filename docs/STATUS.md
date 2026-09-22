@@ -10,7 +10,7 @@ This living document tracks milestone completion, test results, and pre-register
 - [x] **Milestone 1: Core Skeleton & Profile Image Safety Gate** (Gate 1: PASSED)
 - [x] **Milestone 2: Synthetic Generator & Platform Profiles** (Gate 2: PASSED)
 - [x] **Milestone 3: Signal Plugins Suite** (Gate 3: PASSED)
-- [ ] **Milestone 4: Graph & Clustering Engine** (Gate 4: PENDING)
+- [x] **Milestone 4: Graph & Clustering Engine** (Gate 4: PASSED)
 - [ ] **Milestone 5: Explainable Decision Engine** (Gate 5: PENDING)
 - [ ] **Milestone 6: Evaluation Framework & Ablations** (Gate 6: PENDING)
 - [ ] **Milestone 7: Threat Simulation Lab & Link Verification Queue** (Gate 7: PENDING)
@@ -130,5 +130,18 @@ Perceptual hash distances ($64$-bit dHash, wHash, and pHash) evaluated against p
 - [x] **Cross-Profile & Cross-Variant Matrices**: Feature signals build cleanly across all 3 platform profiles (`video_comments`, `forum_communities`, `chat_servers`) and both Variants (A and B).
 - [x] **Protocol & Boundary Enforcement**: All plugins conform to `SignalPlugin` protocol, register in `PluginRegistry`, maintain strict zero-cross-import boundaries, and core imports zero plugin implementations.
 - [x] **Full Test Suite**: 54/54 pytest tests pass cleanly in 55s.
+
+---
+
+## Gate 4 Checklist: Graph & Clustering Engine (VERIFIED & PASSED)
+
+- [x] **Heterogeneous Multi-Modal Graph Builder**: Builds canonical nodes (`ACTOR`, `MEDIA`, `SPACE`, `DESTINATION`, `CONTENT`) and edges (`AUTHORED`, `POSTED_IN`, `ATTACHED_MEDIA`, `LINKED_DESTINATION`) from synthetic and streaming datasets.
+- [x] **Bipartite Co-Targeting Projection**: Evaluates shared space targeting using Jaccard and cosine co-occurrence weights.
+- [x] **Negative Control Safety (Zero False Merges)**: Strictly avoids false cluster merges on `LEGIT_FANDOM` (super-popular space co-commenters) and `LEGIT_AVATAR_REUSE` (viral meme popularity discounting). Co-targeting edges alone without shared infrastructure never bridge benign actors into attack clusters.
+- [x] **Clustering Algorithms**: Connected Components and modularity-aware Louvain / Label Propagation algorithms with size thresholding and cluster-level metadata extraction.
+- [x] **Ground-Truth Cluster Evaluation**: Computes cluster purity, Adjusted Rand Index (ARI), Adjusted Mutual Information (AMI), and attack precision metrics against synthesized ground truth.
+- [x] **Cross-Profile & Cross-Variant Robustness**: Verified across all 3 profiles (`video_comments`, `forum_communities`, `chat_servers`) on both Variant A (dev) and Variant B (held-out).
+- [x] **Full Test Suite**: 60/60 pytest tests pass cleanly in 75s.
+
 
 
