@@ -16,6 +16,7 @@ SafeFlow provides modular, multi-modal detection components (profile-image safet
 
 | Section | Description | Document Link |
 |---|---|---|
+| **Project & Developer Guide** | Step-by-step install, quickstart, CLI, API, SDK, and testing guide | [PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) |
 | **System Architecture** | Multi-hop pathway topology, signal extractors & pipeline specs | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | **Research Report** | Benchmark evaluation, prevalence adjustments & transfer matrices | [RESEARCH_REPORT.md](docs/RESEARCH_REPORT.md) |
 | **Limitations & Scope** | Perceptual hashing invariant bounds & responsible disclosure | [LIMITATIONS.md](docs/LIMITATIONS.md) |
