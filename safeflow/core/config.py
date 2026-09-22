@@ -226,3 +226,15 @@ class PolicyPackLoader:
             if file.stem not in packs:
                 packs.append(file.stem)
         return sorted(packs)
+
+    @classmethod
+    def load_default(cls, search_dir: str | Path | None = None) -> PolicyPack:
+        """Load default research or general policy pack."""
+        try:
+            return cls.load_by_name("default_research", search_dir)
+        except FileNotFoundError:
+            try:
+                return cls.load_by_name("general_video_platform", search_dir)
+            except FileNotFoundError:
+                return PolicyPack(name="default", description="In-memory default policy pack")
+

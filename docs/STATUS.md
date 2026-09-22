@@ -11,7 +11,7 @@ This living document tracks milestone completion, test results, and pre-register
 - [x] **Milestone 2: Synthetic Generator & Platform Profiles** (Gate 2: PASSED)
 - [x] **Milestone 3: Signal Plugins Suite** (Gate 3: PASSED)
 - [x] **Milestone 4: Graph & Clustering Engine** (Gate 4: PASSED)
-- [ ] **Milestone 5: Explainable Decision Engine** (Gate 5: PENDING)
+- [x] **Milestone 5: Explainable Decision Engine** (Gate 5: PASSED)
 - [ ] **Milestone 6: Evaluation Framework & Ablations** (Gate 6: PENDING)
 - [ ] **Milestone 7: Threat Simulation Lab & Link Verification Queue** (Gate 7: PENDING)
 - [ ] **Milestone 8: REST API, SDK, Exporters & Dashboard** (Gate 8: PENDING)
@@ -142,6 +142,26 @@ Perceptual hash distances ($64$-bit dHash, wHash, and pHash) evaluated against p
 - [x] **Ground-Truth Cluster Evaluation**: Computes cluster purity, Adjusted Rand Index (ARI), Adjusted Mutual Information (AMI), and attack precision metrics against synthesized ground truth.
 - [x] **Cross-Profile & Cross-Variant Robustness**: Verified across all 3 profiles (`video_comments`, `forum_communities`, `chat_servers`) on both Variant A (dev) and Variant B (held-out).
 - [x] **Full Test Suite**: 60/60 pytest tests pass cleanly in 75s.
+
+---
+
+## Gate 5 Checklist: Explainable Decision Engine (VERIFIED & PASSED)
+
+- [x] **Multi-Tiered Scoring**: Implemented transparent weighted `HeuristicScorer` baseline and group-aware `CalibratedScorer` (Logistic Regression with Platt/Sigmoid calibration and `GroupKFold` cross-validation).
+- [x] **Strict Signal-Family Gating**: Enforced multi-signal requirements (HIGH risk requires $\ge 3$ distinct signal families; CRITICAL requires $\ge 4$ distinct signal families).
+- [x] **Non-Overridable Single-Signal Protection**: Isolated suggestive presentation tags (`ALLOW_TAGGED`) or AI-likelihood alone can NEVER elevate actor risk above LOW.
+- [x] **Scenarios A–G Pre-Registered Tests Verified**:
+  - Scenario A (Benign normal user $\to$ LOW risk).
+  - Scenario B (Curiosity funnel with suggestive avatar + bio link + high space targeting $\to$ HIGH risk).
+  - Scenario C (Reused avatar network with high repetition $\to$ HIGH risk).
+  - Scenario D (Full coordinated attack network $\to$ CRITICAL risk with account suspension recommendation).
+  - Scenario E (Legitimate fandom & viral meme avatar reuse $\to$ LOW risk via IDF popularity discounting).
+  - Scenario F (Single suggestive avatar tag alone $\to$ strictly LOW risk via single-signal protection invariant).
+  - Scenario G (Policy pack sensitivity $\to$ identical signals yield identical risk scores/families but platform-tailored recommendations).
+- [x] **Structured Explanation Engine**: Emits analyst-facing evidence points, mitigating counter-evidence points, and safety gating audit descriptions.
+- [x] **Generic Role Redaction**: Verified that creator role redaction removes internal model scores, evidence, counter-evidence, and triggered signal families.
+- [x] **Test Suite & Import Boundaries**: 69/69 pytest tests passing cleanly, zero leaks across architectural boundaries.
+
 
 
 
