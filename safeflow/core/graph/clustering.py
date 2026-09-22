@@ -8,7 +8,15 @@ from safeflow.core.graph.bipartite import BipartiteCoTargetingEngine
 
 
 class CoordinationClusteringEngine:
-    """Detects coordinated actor clusters across shared media, domains, and spaces."""
+    """Detects coordinated actor clusters across shared media, domains, and targeted spaces.
+
+    Key Invariants:
+    1. Multi-Resource Linking: Combines perceptual hash reuse, shared destination routing,
+       and bipartite co-targeting.
+    2. Negative Control Safety (Anti-Bridging): Shared space co-targeting alone NEVER creates
+       a new edge between benign actors; it only reinforces existing infrastructure links.
+       Viral meme templates with high reuse are pruned via IDF popularity attenuation.
+    """
 
     @classmethod
     def build_actor_similarity_graph(
@@ -16,31 +24,47 @@ class CoordinationClusteringEngine:
         G: nx.MultiDiGraph,
         min_weight_threshold: float = 0.5,
     ) -> nx.Graph:
-        """Construct a unified weighted Actor-Actor graph combining media reuse, shared domains, and co-targeting."""
+        """Construct a unified weighted Actor-Actor graph combining media reuse, shared domains, and co-targeting.
+
+        Pipeline:
+        1. Initialize Actor nodes.
+        2. Add edges for shared media records (pHash/dHash matches), skipping viral default avatars.
+        3. Add edges for shared external destination domains (Actor -> Link -> Destination).
+        4. Reinforce existing links using high-risk bipartite co-targeting ratios.
+        5. Prune edges falling below min_weight_threshold.
+
+        Args:
+            G: Heterogeneous multi-modal graph.
+            min_weight_threshold: Minimum edge weight required to retain an edge.
+
+        Returns:
+            Weighted homogeneous Actor-Actor graph.
+        """
         actor_graph = nx.Graph()
 
-        # Add all Actor nodes
+        # Step 1: Add all Actor nodes
         for node, data in G.nodes(data=True):
             if data.get("node_type") == "Actor":
                 actor_graph.add_node(node, **data)
 
-        # 1. Add Shared Media / Hash Match Edges
-        # Map media to actors
+        # Step 2: Add Shared Media / Perceptual Hash Match Edges
+        # Map media to actors that use them
         media_actors: dict[str, list[str]] = {}
         for u, v, data in G.edges(data=True):
             if data.get("edge_type") == "uses_media":
                 media_actors.setdefault(v, []).append(u)
 
         for m_id, actors in media_actors.items():
-            if 1 < len(actors) < 50:  # Skip viral defaults/memes
+            # Prune viral defaults / generic memes (>50 actors) to avoid false-positive bridging
+            if 1 < len(actors) < 50:
                 for i in range(len(actors)):
                     for j in range(i + 1, len(actors)):
                         a1, a2 = actors[i], actors[j]
                         cur_w = actor_graph[a1][a2]["weight"] if actor_graph.has_edge(a1, a2) else 0.0
                         actor_graph.add_edge(a1, a2, weight=cur_w + 3.0, reason="shared_media")
 
-        # 2. Add Shared Destination Domain Edges
-        # Traverse Actor -> Link -> Domain
+        # Step 3: Add Shared Destination Domain Edges
+        # Traverse multi-hop path: Actor -> Link -> Domain
         actor_domains: dict[str, set[str]] = {}
         for a_id in actor_graph.nodes():
             for _, link_id, d_edge in G.out_edges(a_id, data=True):
@@ -62,7 +86,8 @@ class CoordinationClusteringEngine:
                         cur_w = actor_graph[a1][a2]["weight"] if actor_graph.has_edge(a1, a2) else 0.0
                         actor_graph.add_edge(a1, a2, weight=cur_w + 2.5, reason="shared_destination")
 
-        # 3. Reinforce existing links with Bipartite Co-Targeting
+        # Step 4: Reinforce existing infrastructure links with Bipartite Co-Targeting
+        # (Anti-bridging invariant: co-targeting alone without shared media/domain will NOT create edges)
         co_space_graph = BipartiteCoTargetingEngine.compute_co_targeting_graph(G)
         for u, v, data in co_space_graph.edges(data=True):
             rr = data.get("risk_ratio", 1.0)

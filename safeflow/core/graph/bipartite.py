@@ -9,7 +9,13 @@ import networkx as nx
 
 
 class BipartiteCoTargetingEngine:
-    """Builds bipartite projections and calculates overlap-vs-chance risk ratios."""
+    """Builds bipartite space projections and calculates overlap-vs-chance risk ratios.
+
+    Projects heterogeneous bipartite graphs (Actors -> Spaces) into homogeneous
+    weighted Actor-Actor graphs. Evaluates whether two actors co-target the same
+    spaces at rates higher than expected by chance, using Inverse Document Frequency
+    (IDF) attenuation to prevent false merges on universally viral spaces.
+    """
 
     @classmethod
     def compute_co_targeting_graph(
@@ -17,10 +23,26 @@ class BipartiteCoTargetingEngine:
         G: nx.MultiDiGraph,
         min_co_occurrences: int = 1,
     ) -> nx.Graph:
-        """Compute weighted Actor-Actor projection based on shared targeted spaces with popularity discounting."""
+        """Compute weighted Actor-Actor projection based on shared targeted spaces with popularity discounting.
+
+        Algorithm:
+        1. Extract all Actor nodes and their corresponding targeted Space connections.
+        2. Calculate global Space targeting frequencies (actor frequency per space).
+        3. For each pair of actors (A1, A2) sharing spaces:
+           - Attenuate shared space weights using IDF: log(1 + N / (1 + freq(S)))
+           - Compute observed co-occurrence vs. expected co-occurrence under random chance.
+           - Assign edge weights and risk ratios.
+
+        Args:
+            G: Heterogeneous MultiDiGraph containing Actor and Space nodes.
+            min_co_occurrences: Minimum number of shared spaces required to form an edge.
+
+        Returns:
+            Homogeneous networkx.Graph of Actors with weighted co-targeting edges.
+        """
         co_graph = nx.Graph()
 
-        # Extract Actor -> Spaces mapping
+        # Step 1: Extract Actor -> Spaces mapping from heterogeneous graph
         actor_spaces: dict[str, set[str]] = {}
         space_popularity: dict[str, float] = {}
         all_actors: list[str] = []
@@ -39,13 +61,13 @@ class BipartiteCoTargetingEngine:
         total_spaces = len(space_popularity) or 1
         num_actors = len(all_actors) or 1
 
-        # Space frequency across population for IDF weighting
+        # Step 2: Calculate global space frequency across population for IDF weighting
         space_actor_counts: Counter[str] = Counter()
         for spaces in actor_spaces.values():
             for s in spaces:
                 space_actor_counts[s] += 1
 
-        # Compute pairwise weighted co-targeting
+        # Step 3: Compute pairwise popularity-discounted co-targeting
         for i, a1 in enumerate(all_actors):
             spaces_1 = actor_spaces.get(a1, set())
             if not spaces_1:
@@ -60,16 +82,15 @@ class BipartiteCoTargetingEngine:
                 if len(shared) < min_co_occurrences:
                     continue
 
-                # Popularity-discounted weight
-                # Shared niche spaces contribute high weight; shared universal top spaces contribute lower weight
+                # Popularity-discounted weight:
+                # Shared niche spaces contribute high weight; shared top viral spaces contribute low weight
                 weight = 0.0
                 for s in shared:
                     freq = space_actor_counts[s]
-                    # IDF weight
                     idf = math.log(1.0 + num_actors / (1.0 + freq))
                     weight += idf
 
-                # Expected overlap under independence
+                # Expected overlap under random independence null model
                 expected_overlap = sum(
                     (space_actor_counts[s] / num_actors) ** 2 for s in (spaces_1 | spaces_2)
                 )

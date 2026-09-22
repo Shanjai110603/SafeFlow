@@ -24,7 +24,13 @@ def hamming_distance_hex(hash1: str, hash2: str) -> int:
 
 
 class BKTreeNode:
-    """Node in a Burkhard-Keller metric tree."""
+    """Node in a Burkhard-Keller metric tree.
+
+    Attributes:
+        hash_str: Normalized hexadecimal perceptual hash stored at this node.
+        payload: Arbitrary caller-provided metadata (e.g., media_id, actor_id, tags).
+        children: Mapping from discrete Hamming distance (int) to child BKTreeNode.
+    """
 
     def __init__(self, hash_str: str, payload: Any = None) -> None:
         self.hash_str = hash_str
@@ -33,7 +39,17 @@ class BKTreeNode:
 
 
 class PerceptualHashBKTree:
-    """Thread-safe Burkhard-Keller Tree for fast sub-millisecond Hamming distance lookups."""
+    """Thread-safe Burkhard-Keller Tree for fast sub-millisecond Hamming distance lookups.
+
+    The BK-Tree indexes perceptual hashes in a metric space (discrete Hamming distance)
+    satisfying the triangle inequality:
+        d(x, z) <= d(x, y) + d(y, z)
+
+    During queries with radius R around query Q:
+    For any node N at distance d(Q, N), any match X must satisfy:
+        d(Q, N) - R <= d(N, X) <= d(Q, N) + R
+    This prunes non-matching subtrees, enabling $O(\\log N)$ search complexity.
+    """
 
     def __init__(self) -> None:
         self.root: BKTreeNode | None = None
@@ -41,17 +57,25 @@ class PerceptualHashBKTree:
         self._lock = threading.RLock()
 
     def __len__(self) -> int:
+        """Return total number of unique perceptual hashes indexed."""
         return self._size
 
     def insert(self, hash_str: str, payload: Any = None) -> None:
-        """Insert a perceptual hash string with optional metadata payload into the BK-Tree."""
+        """Insert a perceptual hash string with optional metadata payload into the BK-Tree.
+
+        Args:
+            hash_str: Hexadecimal hash representation (e.g. '0x1234abcd5678ef01').
+            payload: Optional metadata payload associated with this hash.
+        """
         clean_hash = hash_str.lower().strip()
         with self._lock:
+            # Case 1: Empty tree initialization
             if self.root is None:
                 self.root = BKTreeNode(clean_hash, payload)
                 self._size = 1
                 return
 
+            # Case 2: Traverse tree to find appropriate branch
             current = self.root
             while True:
                 dist = hamming_distance_hex(clean_hash, current.hash_str)
@@ -60,6 +84,7 @@ class PerceptualHashBKTree:
                     current.payload = payload or current.payload
                     return
 
+                # Branch along edge corresponding to Hamming distance
                 if dist in current.children:
                     current = current.children[dist]
                 else:
@@ -68,7 +93,11 @@ class PerceptualHashBKTree:
                     return
 
     def batch_insert(self, items: list[tuple[str, Any]]) -> None:
-        """Insert multiple (hash_str, payload) pairs."""
+        """Insert multiple (hash_str, payload) pairs in a thread-safe transaction.
+
+        Args:
+            items: List of (hex_hash, payload) tuples.
+        """
         with self._lock:
             for h_str, p in items:
                 self.insert(h_str, p)
@@ -76,7 +105,12 @@ class PerceptualHashBKTree:
     def search(self, query_hash: str, max_distance: int = 10) -> list[dict[str, Any]]:
         """Find all indexed hashes within Hamming distance <= max_distance.
 
-        Returns list of {'hash': str, 'distance': int, 'payload': Any}.
+        Args:
+            query_hash: Target perceptual hash to compare against.
+            max_distance: Maximum Hamming distance bound (radius threshold).
+
+        Returns:
+            Sorted list of dicts: [{'hash': str, 'distance': int, 'payload': Any}], closest first.
         """
         results: list[dict[str, Any]] = []
         clean_query = query_hash.lower().strip()
@@ -89,6 +123,8 @@ class PerceptualHashBKTree:
             while candidates:
                 node = candidates.pop()
                 dist = hamming_distance_hex(clean_query, node.hash_str)
+                
+                # Check if current node is a match
                 if dist <= max_distance:
                     results.append({
                         "hash": node.hash_str,
@@ -97,13 +133,13 @@ class PerceptualHashBKTree:
                     })
 
                 # BK-Tree triangle inequality pruning:
-                # only search subtrees with edge weights in [dist - max_distance, dist + max_distance]
+                # Subtrees outside [dist - max_distance, dist + max_distance] cannot contain matches
                 min_d = dist - max_distance
                 max_d = dist + max_distance
                 for edge_weight, child_node in node.children.items():
                     if min_d <= edge_weight <= max_d:
                         candidates.append(child_node)
 
-        # Sort closest matches first
+        # Sort matches closest first
         results.sort(key=lambda r: r["distance"])
         return results

@@ -14,8 +14,16 @@ from safeflow.core.schema import RiskLevel, Signal
 
 
 class SignalFamilyGate:
-    """Enforces multi-signal confirmation and non-overridable gating rules."""
+    """Enforces multi-signal confirmation and non-overridable gating rules.
 
+    Invariants:
+    1. Single-Signal Protection: Isolated suggestive presentation tags or AI flags alone CANNOT exceed LOW risk.
+    2. High-Risk Multi-Family Requirement: HIGH risk strictly requires >= 3 distinct activated signal families.
+    3. Critical-Risk Multi-Family Requirement: CRITICAL risk strictly requires >= 4 distinct activated signal families.
+    4. Anti-Circumvention: Downward adjustments record explicit audit trail reasons for explainability.
+    """
+
+    # Activation threshold for a signal to count as an actively triggered family
     FAMILY_TRIGGER_THRESHOLD = 0.50
 
     @classmethod
@@ -24,7 +32,15 @@ class SignalFamilyGate:
         signals: Sequence[Signal],
         threshold: float = FAMILY_TRIGGER_THRESHOLD,
     ) -> set[str]:
-        """Extract set of family names where at least one signal exceeds the activation threshold."""
+        """Extract the set of distinct signal family names where at least one signal exceeds the threshold.
+
+        Args:
+            signals: Sequence of multi-modal signals.
+            threshold: Minimum signal value to consider a family activated (default 0.50).
+
+        Returns:
+            Set of active family names (e.g. {'BEHAVIOR', 'DESTINATION', 'TARGETING'}).
+        """
         triggered = set()
         for sig in signals:
             if sig.value >= threshold:
@@ -38,17 +54,23 @@ class SignalFamilyGate:
         raw_score: float,
         signals: Sequence[Signal],
     ) -> tuple[RiskLevel, list[str]]:
-        """Apply gating constraints to raw risk classification.
-        
+        """Apply mathematical gating constraints to raw risk classification.
+
+        Args:
+            raw_level: Initial un-gated RiskLevel from scoring model.
+            raw_score: 0-100 numerical risk score.
+            signals: Sequence of input signals evaluated.
+
         Returns:
-            (gated_level, gating_reasons)
+            Tuple of (gated_risk_level, list_of_gating_audit_reasons).
         """
         gating_reasons: list[str] = []
         triggered_families = cls.extract_triggered_families(signals)
         num_families = len(triggered_families)
 
-        # Check for single-signal isolated triggers
-        # Only IMAGE_LINK / media_gate triggers
+        # -------------------------------------------------------------------------
+        # Invariant 1: Single-Signal Protection for Suggestive / AI Flags
+        # -------------------------------------------------------------------------
         has_suggestive = any(
             (s.name in ("suggestive_presentation", "media_suggestive_score") or "suggestive" in s.name)
             and s.value >= cls.FAMILY_TRIGGER_THRESHOLD
@@ -60,8 +82,8 @@ class SignalFamilyGate:
             for s in signals
         )
         
-        # Invariant 1: Single-signal protection for suggestive / AI flags alone
         non_image_families = {f for f in triggered_families if f != "IMAGE_LINK"}
+        # If suggestive presentation or AI flag is active without corroborating non-image families:
         if (has_suggestive or has_ai_flag) and len(non_image_families) == 0:
             if raw_level in (RiskLevel.MEDIUM, RiskLevel.HIGH, RiskLevel.CRITICAL):
                 gating_reasons.append(
@@ -69,7 +91,9 @@ class SignalFamilyGate:
                 )
                 return RiskLevel.LOW, gating_reasons
 
-        # Invariant 2: High risk requires >= 3 distinct families
+        # -------------------------------------------------------------------------
+        # Invariant 2: CRITICAL Risk requires >= 4 distinct activated signal families
+        # -------------------------------------------------------------------------
         if raw_level == RiskLevel.CRITICAL:
             if num_families < 4:
                 if num_families >= 3:
@@ -88,6 +112,9 @@ class SignalFamilyGate:
                         f"Downgraded from CRITICAL to LOW: Requires >= 4 distinct signal families (got {num_families}: {sorted(triggered_families)})"
                     )
 
+        # -------------------------------------------------------------------------
+        # Invariant 3: HIGH Risk requires >= 3 distinct activated signal families
+        # -------------------------------------------------------------------------
         if raw_level == RiskLevel.HIGH:
             if num_families < 3:
                 if num_families == 2:
@@ -101,6 +128,9 @@ class SignalFamilyGate:
                         f"Downgraded from HIGH to LOW: Requires >= 3 distinct signal families (got {num_families}: {sorted(triggered_families)})"
                     )
 
+        # -------------------------------------------------------------------------
+        # Invariant 4: MEDIUM Risk requires at least 2 families or high severity score
+        # -------------------------------------------------------------------------
         if raw_level == RiskLevel.MEDIUM:
             if num_families < 2 and raw_score < 65.0:
                 raw_level = RiskLevel.LOW

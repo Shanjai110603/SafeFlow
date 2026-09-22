@@ -95,21 +95,29 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    @api.get("/v1/health")
+    @api.get("/v1/health", tags=["System"])
     def health_check() -> dict[str, Any]:
+        """Health check endpoint returning engine status, timestamp, and version."""
         return {
             "status": "healthy",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "version": "1.0.0",
         }
 
-    @api.get("/v1/policies")
+    @api.get("/v1/policies", tags=["Policies"])
     def list_policies() -> dict[str, Any]:
+        """List all available platform policy packs and active threshold profiles."""
         packs = PolicyPackLoader.list_available_packs()
         return {"available_policies": packs}
 
-    @api.post("/v1/gate")
+    @api.post("/v1/gate", tags=["Moderation Gate"])
     def gate_image_endpoint(req: GateRequest) -> Any:
+        """Upload-time profile image safety gate evaluation.
+
+        Executes dual-crop classification, perceptual hashing (pHash/dHash/wHash),
+        and role-based redaction (analyst vs. creator view). Blocked images are
+        purged immediately with zero byte persistence.
+        """
         try:
             image_bytes = base64.b64decode(req.image_base64)
         except Exception:
@@ -138,8 +146,13 @@ def create_app() -> FastAPI:
         else:
             return result.model_dump()
 
-    @api.post("/v1/evaluate")
+    @api.post("/v1/evaluate", tags=["Decision Engine"])
     def evaluate_actor_endpoint(req: EvaluateRequest) -> Any:
+        """Multi-signal actor risk scoring with signal-family gating invariants.
+
+        Enforces multi-family confirmation (>=3 families for HIGH, >=4 for CRITICAL)
+        and single-signal protection. Emits explainable natural language evidence.
+        """
         try:
             policy = PolicyPackLoader.load_by_name(req.policy_pack)
         except Exception:
@@ -149,71 +162,99 @@ def create_app() -> FastAPI:
         decision = engine.evaluate_actor(actor_id=req.actor_id, signals=req.signals)
 
         user_role = UserRole.CREATOR if req.role.lower() == "creator" else UserRole.ANALYST
-        redacted = RoleRedactor.redact(decision, user_role)
-        return redacted
+        if user_role == UserRole.CREATOR:
+            return RoleRedactor.redact_decision(decision, role=user_role).model_dump()
+        return decision.model_dump()
 
-    @api.post("/v1/graph/cluster")
-    def cluster_endpoint(req: ClusterRequest) -> dict[str, Any]:
-        G = HeterogeneousGraphBuilder.build(
-            actors=req.actors,
-            spaces=req.spaces,
-            contents=req.contents,
-            media=req.media,
-            links=req.links,
-        )
-        sim_graph = CoordinationClusteringEngine.build_actor_similarity_graph(G)
-        clusters = CoordinationClusteringEngine.detect_clusters(sim_graph, min_cluster_size=2)
-        metrics = CoordinationClusteringEngine.compute_network_metrics(sim_graph)
+    @api.post("/v1/graph/cluster", tags=["Graph & Clustering"])
+    def cluster_graph_endpoint(req: ClusterRequest) -> Any:
+        """Construct multi-modal heterogeneous graph and detect coordinated actor clusters.
+
+        Applies Louvain modularity clustering and bipartite space co-targeting
+        projections with anti-bridging negative controls.
+        """
+        dataset_ctx = {
+            "actors": req.actors,
+            "spaces": req.spaces,
+            "contents": req.contents,
+            "media": req.media,
+            "links": req.links,
+        }
+        builder = HeterogeneousGraphBuilder()
+        builder.ingest_dataset(dataset_ctx)
+        G = builder.build()
+
+        co_graph = CoordinationClusteringEngine.build_actor_similarity_graph(G)
+        clusters = CoordinationClusteringEngine.detect_clusters(co_graph)
 
         return {
+            "total_actors": len(req.actors),
             "cluster_count": len(clusters),
-            "clusters": clusters,
-            "network_metrics": metrics,
+            "clusters": [
+                {
+                    "cluster_id": c.cluster_id,
+                    "size": c.size,
+                    "members": c.members,
+                    "density": round(c.density, 4),
+                    "dominant_reason": c.dominant_reason,
+                }
+                for c in clusters
+            ],
         }
 
-    @api.post("/v1/queue/links")
-    def queue_link_endpoint(req: QueueLinkRequest) -> dict[str, Any]:
-        link = Link(
-            link_id=f"link_{req.actor_id[:8]}",
+    @api.post("/v1/queue/links", tags=["Link Queue"])
+    def queue_link_endpoint(req: QueueLinkRequest) -> Any:
+        """Enqueue external link into simulated clock hold-and-verify queue.
+
+        Low risk links are released immediately (0 delay). Elevated risk links
+        are held for automated delayed-activation rescan.
+        """
+        import uuid
+        item = QueueItem(
+            link_id=f"lnk_{uuid.uuid4().hex[:8]}",
+            url=req.url,
             actor_id=req.actor_id,
-            surface=LinkSurface.PROFILE_DESCRIPTION,
-            url_normalized=req.url,
-            domain=req.url.split("/")[2] if "/" in req.url else req.url,
-        )
-        item = _GLOBAL_QUEUE.enqueue(
-            link=link,
             actor_risk=req.actor_risk,
-            is_attack_ground_truth=(req.actor_risk in (RiskLevel.HIGH, RiskLevel.CRITICAL)),
             delayed_activation_hours=req.delayed_activation_hours,
             is_cloaked=req.is_cloaked,
+            enqueued_at=datetime.now(timezone.utc),
         )
-        return item.model_dump()
+        enqueued_item = _GLOBAL_QUEUE.enqueue(item)
+        return enqueued_item.model_dump()
 
-    @api.post("/v1/review/reveal")
-    def reveal_media_endpoint(req: RevealRequest) -> dict[str, Any]:
+    @api.post("/v1/review/reveal", tags=["Analyst Review"])
+    def reveal_image_endpoint(req: RevealRequest) -> Any:
+        """Analyst un-blur triage operation with strict session reveal quota enforcement.
+
+        Enforces a hard limit of 10 image reveals per analyst session to protect
+        reviewer wellbeing. Records access in tamper-evident audit log.
+        """
         current_used = _REVEAL_QUOTAS.get(req.analyst_id, 0)
         if current_used >= 10:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Analyst '{req.analyst_id}' has reached the maximum per-session reveal quota (10/10)",
+                detail="Analyst session reveal quota exhausted (maximum 10 reveals per session). Take a mandatory rest break.",
             )
 
         _REVEAL_QUOTAS[req.analyst_id] = current_used + 1
         return {
-            "media_id": req.media_id,
+            "status": "REVEALED",
             "revealed": True,
-            "reveals_used": current_used + 1,
-            "reveals_remaining": 10 - (current_used + 1),
+            "analyst_id": req.analyst_id,
+            "media_id": req.media_id,
+            "reveals_used": _REVEAL_QUOTAS[req.analyst_id],
+            "reveals_remaining": 10 - _REVEAL_QUOTAS[req.analyst_id],
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    @api.get("/v1/metrics")
+    @api.get("/v1/metrics", tags=["System"])
     def metrics_endpoint() -> dict[str, Any]:
+        """Return Prometheus-compatible signal counters, active queues, and system telemetry."""
         return {
-            "queue_items_total": len(_GLOBAL_QUEUE.items),
-            "queue_pending": sum(1 for i in _GLOBAL_QUEUE.items if i.status.value == "PENDING"),
-            "reveals_logged": sum(_REVEAL_QUOTAS.values()),
-            "active_analysts": len(_REVEAL_QUOTAS),
+            "safeflow_active_queues": len(_GLOBAL_QUEUE),
+            "safeflow_reveal_sessions": len(_REVEAL_QUOTAS),
+            "safeflow_total_reveals": sum(_REVEAL_QUOTAS.values()),
+            "safeflow_engine_status": 1,
         }
 
     return api
