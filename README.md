@@ -9,42 +9,220 @@ SafeFlow provides modular, multi-modal detection components (profile-image safet
 
 ---
 
-## System Architecture
+## Multi-Hop Pathway Attack vs. Detection
+
+Traditional trust & safety systems inspect comments in isolation, allowing sophisticated redirection funnels to bypass filters. SafeFlow correlates signals across the entire multi-hop pathway:
+
+```mermaid
+flowchart LR
+    subgraph S1["1. Attention Surface"]
+        A1["Viral Space / Top Comment"]
+        A2["Innocuous or Provocative Text"]
+        A3["'Bio Link in Profile' Callout"]
+    end
+
+    subgraph S2["2. Profile Identity Surface"]
+        P1["Suggestive / Procedural Avatar"]
+        P2["Obfuscated Handle & Homoglyphs"]
+        P3["External Destination Link in Bio"]
+    end
+
+    subgraph S3["3. Redirection / Destination"]
+        D1["Shortener / Redirect Chain"]
+        D2["Cloaked Activation (15-30m Delay)"]
+        D3["Age-Inappropriate Host (.local)"]
+    end
+
+    subgraph S4["4. SafeFlow Decision Engine"]
+        E1["Signal-Family Correlation (>=3 Families)"]
+        E2["Graph Clustering & Co-Targeting"]
+        E3["Calibrated Risk Scorer & Policy Action"]
+    end
+
+    S1 -->|"Directs Attention"| S2
+    S2 -->|"Funnel Route"| S3
+    S1 -.->|"Behavior & Targeting Signals"| S4
+    S2 -.->|"Media & Bio Signals"| S4
+    S3 -.->|"Destination & Cloak Signals"| S4
+```
+
+---
+
+## End-to-End System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Attention Surfaces
-        A1[Video Comments]
-        A2[Community Posts]
-        A3[Chat Messages]
+    subgraph Ingestion["Platform Adapters & Ingestion"]
+        P_VID["Video Comments Adapter"]
+        P_FOR["Forum Communities Adapter"]
+        P_CHT["Chat Servers Adapter"]
     end
 
-    subgraph Signal Extraction Pipeline
-        S1[Media Reuse & Perceptual Hash Plugin]
-        S2[Text Repetition & Velocity Plugin]
-        S3[Targeting & Bipartite Concentration Plugin]
-        S4[Link Destination & Cloak Plugin]
-        S5[Profile Obfuscation & Bio Plugin]
+    subgraph Signals["Signal Extraction Plugin Suite"]
+        S_IMG["Media Reuse Plugin\n(pHash, dHash, wHash, IDF Discounting)"]
+        S_TXT["Text Behavior Plugin\n(Repetition, TTR, TF-IDF Cosine, Velocity)"]
+        S_TGT["Targeting Plugin\n(Space Popularity Percentile, Bipartite Co-Targeting)"]
+        S_DST["Destination Plugin\n(Redirect Depth, Shorteners, Category Risk, Cloaking)"]
+        S_PRF["Profile Plugin\n(Homoglyphs, Zero-Width, Bio Pattern Density)"]
     end
 
-    subgraph Correlation & Decision
-        G[Heterogeneous Graph & Louvain Clustering Engine]
-        D[Explainable Decision Engine with Signal-Family Gating]
+    subgraph Analysis["Correlation & Clustering Engine"]
+        G_BLD["Heterogeneous Graph Builder\n(Nodes: Actor, Content, Media, Space, Dest)"]
+        G_PRO["Bipartite Space Co-Targeting Projection"]
+        G_CLU["Louvain / Connected Components Clustering"]
     end
 
-    subgraph Actions & Triage
-        Q[Simulated Clock Hold-and-Verify Queue]
-        UI[Analyst Workbench with Gaussian Blur & 10-Reveal Quota]
-        EXP[JSONL SIEM & Webhook Dispatchers]
+    subgraph Decision["Explainable Decision Engine"]
+        D_CAL["GroupKFold Calibrated Scorer"]
+        D_HEU["Transparent Heuristic Scorer"]
+        D_GAT["Signal-Family Gating Invariant\n(HIGH >= 3 families, CRITICAL >= 4 families)"]
+        D_RED["Role-Based Redactor\n(Creator vs. Analyst Views)"]
     end
 
-    Attention Surfaces --> Signal Extraction Pipeline
-    Signal Extraction Pipeline --> G
-    Signal Extraction Pipeline --> D
-    G --> D
-    D --> Q
-    D --> UI
-    D --> EXP
+    subgraph Actions["Triage, Action & Observability"]
+        Q_LNK["Simulated Clock Link Queue\n(Hold-and-Verify 5m-120m)"]
+        UI_DSH["Analyst UI Dashboard\n(Server-Side Blur & 10-Reveal Cap)"]
+        EXP_EVT["JSONL Exporter & Webhook Dispatcher"]
+        AUD_LOG["Tamper-Evident Hash-Chained Audit Log"]
+    end
+
+    Ingestion --> Signals
+    Signals --> Analysis
+    Signals --> Decision
+    Analysis --> Decision
+    Decision --> Actions
+```
+
+---
+
+## Profile Image Safety Gate Pipeline
+
+SafeFlow evaluates image uploads using strict privacy and data minimization invariants:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Creator as Creator / Actor
+    participant Gate as Image Gate Pipeline
+    participant HashDB as Perceptual Hash Store
+    participant Classifier as Multi-Crop Classifier
+    participant BlobStore as ReviewBlobStore (Encrypted)
+    participant Audit as Tamper-Evident Audit Log
+
+    Creator->>Gate: Uploads Profile Image
+    Gate->>Gate: Generate Dual Crops (Full Image vs Circular Avatar Crop)
+    Gate->>HashDB: Query pHash / dHash / wHash & Mirror Index
+    alt Known-Bad Hash Match
+        Gate->>Audit: Record Immediate Hash-Match Block
+        Gate-->>Creator: Return Generic Rejection (Zero persistence)
+    else Clean / Unknown Hash
+        Gate->>Classifier: Evaluate Nudity, Suggestive & OCR Text Scores
+        Classifier-->>Gate: Return Highest-Risk Crop Scores
+        alt Score >= Block Threshold
+            Gate->>HashDB: Index Perceptual Hashes (pHash)
+            Gate->>Gate: Discard Raw Image Bytes (Canary Scanned)
+            Gate->>Audit: Record Gate Block Decision
+            Gate-->>Creator: Return Generic Rejection
+        else Score >= Review Threshold
+            Gate->>BlobStore: Store with Server-Side Gaussian Blur
+            Gate->>Audit: Record Review Triage Item
+            Gate-->>Creator: Return Temporary Placeholder
+        else Score >= Suggestive Tag Threshold
+            Gate->>HashDB: Store Hashes + Tag (TTL 30 Days)
+            Gate->>Audit: Record ALLOW_TAGGED Decision
+            Gate-->>Creator: Return Image Accepted (Internal tags hidden)
+        else Low Risk
+            Gate->>HashDB: Store Hashes
+            Gate-->>Creator: Return Image Accepted
+        end
+    end
+```
+
+---
+
+## Explainable Decision Engine & Signal Gating
+
+To prevent false-positive over-enforcement from isolated signals, SafeFlow enforces mathematical multi-family gating invariants:
+
+```mermaid
+flowchart TD
+    subgraph Inputs["Extracted Multi-Modal Signals"]
+        F1["IMAGE_LINK Family"]
+        F2["BEHAVIOR Family"]
+        F3["TARGETING Family"]
+        F4["DESTINATION Family"]
+        F5["PROFILE_CHANGE Family"]
+    end
+
+    subgraph InvariantCheck["Safety Invariant Checks"]
+        SC1{"Is only a single\nsuggestive tag / AI score\ntriggered?"}
+        SC2{"Count distinct\nsignal families triggered"}
+    end
+
+    subgraph Gating["Signal-Family Gating"]
+        G_LOW["Cap Risk at LOW\n(Single-Signal Invariant)"]
+        G_MED["Score Evaluates to MEDIUM\n(1-2 Families)"]
+        G_HIGH["Allow HIGH Risk\n(Requires >= 3 Families)"]
+        G_CRIT["Allow CRITICAL Risk\n(Requires >= 4 Families)"]
+    end
+
+    subgraph Output["Explainability & Redaction"]
+        EX_GEN["Generate Evidence & Mitigations"]
+        EX_RED{"Recipient Role?"}
+        VIEW_PUB["Creator View:\nGeneric Policy Summary"]
+        VIEW_INT["Analyst View:\nFull Telemetry, Scores & Graph Details"]
+    end
+
+    Inputs --> InvariantCheck
+    SC1 -->|Yes| G_LOW
+    SC1 -->|No| SC2
+    SC2 -->|1-2 Families| G_MED
+    SC2 -->|>= 3 Families| G_HIGH
+    SC2 -->|>= 4 Families| G_CRIT
+
+    G_LOW --> Output
+    G_MED --> Output
+    G_HIGH --> Output
+    G_CRIT --> Output
+
+    Output --> EX_GEN
+    EX_GEN --> EX_RED
+    EX_RED -->|Creator| VIEW_PUB
+    EX_RED -->|Analyst| VIEW_INT
+```
+
+---
+
+## Threat Simulation Lab & Verification Queue Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> IngestLink: Link Detected on Platform
+
+    IngestLink --> RiskEvaluation: Initial SafeFlow Signal Check
+
+    state RiskEvaluation {
+        [*] --> FastTriage
+        FastTriage --> LowRiskScore: Risk < Threshold
+        FastTriage --> HighRiskScore: Risk >= Threshold
+    }
+
+    LowRiskScore --> ImmediateRelease: 0-Second Pass-Through
+    ImmediateRelease --> [*]
+
+    HighRiskScore --> EnqueueHold: Enqueue in Verification Queue
+    state EnqueueHold {
+        [*] --> HoldWindow: Simulated Clock Progression (5m - 120m)
+        HoldWindow --> PeriodicRescan: Rescan Destination at T+15m / T+30m
+        PeriodicRescan --> DetectCloaking: Check Domain Cloaking & Redirect Chains
+    }
+
+    DetectCloaking --> InterceptAttack: Cloaked Adult Destination Detected
+    DetectCloaking --> SafeRelease: Link Verified Benign
+
+    InterceptAttack --> InvalidateSessions: Block Destination & Route Actor for Suspension
+    SafeRelease --> [*]
+    InvalidateSessions --> [*]
 ```
 
 ---
