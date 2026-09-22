@@ -18,6 +18,10 @@ class LinkVerificationQueue:
         self.current_time = datetime.now(timezone.utc)
         self.items: list[QueueItem] = []
 
+    def __len__(self) -> int:
+        """Return total number of items in the queue."""
+        return len(self.items)
+
     def set_time(self, new_time: datetime) -> None:
         """Set simulated clock to an exact timestamp."""
         self.current_time = new_time

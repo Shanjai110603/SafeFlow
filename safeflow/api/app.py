@@ -163,7 +163,7 @@ def create_app() -> FastAPI:
 
         user_role = UserRole.CREATOR if req.role.lower() == "creator" else UserRole.ANALYST
         if user_role == UserRole.CREATOR:
-            return RoleRedactor.redact_decision(decision, role=user_role).model_dump()
+            return RoleRedactor.redact(decision, role=user_role)
         return decision.model_dump()
 
     @api.post("/v1/graph/cluster", tags=["Graph & Clustering"])
@@ -173,16 +173,13 @@ def create_app() -> FastAPI:
         Applies Louvain modularity clustering and bipartite space co-targeting
         projections with anti-bridging negative controls.
         """
-        dataset_ctx = {
-            "actors": req.actors,
-            "spaces": req.spaces,
-            "contents": req.contents,
-            "media": req.media,
-            "links": req.links,
-        }
-        builder = HeterogeneousGraphBuilder()
-        builder.ingest_dataset(dataset_ctx)
-        G = builder.build()
+        G = HeterogeneousGraphBuilder.build(
+            actors=req.actors,
+            spaces=req.spaces,
+            contents=req.contents,
+            media=req.media,
+            links=req.links,
+        )
 
         co_graph = CoordinationClusteringEngine.build_actor_similarity_graph(G)
         clusters = CoordinationClusteringEngine.detect_clusters(co_graph)
@@ -192,13 +189,11 @@ def create_app() -> FastAPI:
             "cluster_count": len(clusters),
             "clusters": [
                 {
-                    "cluster_id": c.cluster_id,
-                    "size": c.size,
-                    "members": c.members,
-                    "density": round(c.density, 4),
-                    "dominant_reason": c.dominant_reason,
+                    "cluster_id": c_name,
+                    "size": len(members),
+                    "members": members,
                 }
-                for c in clusters
+                for c_name, members in clusters.items()
             ],
         }
 
@@ -209,17 +204,19 @@ def create_app() -> FastAPI:
         Low risk links are released immediately (0 delay). Elevated risk links
         are held for automated delayed-activation rescan.
         """
-        import uuid
-        item = QueueItem(
-            link_id=f"lnk_{uuid.uuid4().hex[:8]}",
-            url=req.url,
+        link = Link(
+            link_id=f"lnk_{req.actor_id[:8]}",
             actor_id=req.actor_id,
+            surface=LinkSurface.PROFILE_DESCRIPTION,
+            url_normalized=req.url,
+            domain=req.url.split("/")[2] if "/" in req.url else req.url,
+        )
+        enqueued_item = _GLOBAL_QUEUE.enqueue(
+            link=link,
             actor_risk=req.actor_risk,
             delayed_activation_hours=req.delayed_activation_hours,
             is_cloaked=req.is_cloaked,
-            enqueued_at=datetime.now(timezone.utc),
         )
-        enqueued_item = _GLOBAL_QUEUE.enqueue(item)
         return enqueued_item.model_dump()
 
     @api.post("/v1/review/reveal", tags=["Analyst Review"])
