@@ -12,7 +12,7 @@ This living document tracks milestone completion, test results, and pre-register
 - [x] **Milestone 3: Signal Plugins Suite** (Gate 3: PASSED)
 - [x] **Milestone 4: Graph & Clustering Engine** (Gate 4: PASSED)
 - [x] **Milestone 5: Explainable Decision Engine** (Gate 5: PASSED)
-- [ ] **Milestone 6: Evaluation Framework & Ablations** (Gate 6: PENDING)
+- [x] **Milestone 6: Evaluation Framework & Ablations** (Gate 6: PASSED)
 - [ ] **Milestone 7: Threat Simulation Lab & Link Verification Queue** (Gate 7: PENDING)
 - [ ] **Milestone 8: REST API, SDK, Exporters & Dashboard** (Gate 8: PENDING)
 - [ ] **Milestone 9: Privacy Controls, Reports & Packaging** (Gate 9: PENDING)
@@ -161,6 +161,19 @@ Perceptual hash distances ($64$-bit dHash, wHash, and pHash) evaluated against p
 - [x] **Structured Explanation Engine**: Emits analyst-facing evidence points, mitigating counter-evidence points, and safety gating audit descriptions.
 - [x] **Generic Role Redaction**: Verified that creator role redaction removes internal model scores, evidence, counter-evidence, and triggered signal families.
 - [x] **Test Suite & Import Boundaries**: 69/69 pytest tests passing cleanly, zero leaks across architectural boundaries.
+
+---
+
+## Gate 6 Checklist: Evaluation Framework & Ablations (VERIFIED & PASSED)
+
+- [x] **Standard & Precision@k Metrics**: Comprehensive calculation of Precision, Recall, F1, PR-AUC (Average Precision), ROC-AUC, and Precision @ 10, 50, 100.
+- [x] **Prevalence Reweighting**: Mathematical base-rate adjustments for real-world class imbalance across $0.1\%$, $1.0\%$, and $5.0\%$ attack prevalences.
+- [x] **Component Ablation Studies**: 5 canonical ablation configurations (`full_system`, `comment_only`, `image_only`, `link_only`, `no_graph`) comparing isolated modality power vs composite detection.
+- [x] **Cross-Platform Transfer Matrix**: Computes 3x3 generalization matrix across `video_comments`, `forum_communities`, and `chat_servers`, assessing out-of-domain transferability.
+- [x] **Audit Stamping & Artifact Export**: Benchmarks export structured `metrics.json`, `transfer_matrix.csv`, and `summary.md` stamped with active Git commit hash, seed, dataset variant, and timestamp.
+- [x] **CLI Command**: `safeflow eval --profile video_comments --seed 42 --actors 200 --out results/` operational.
+- [x] **Full Regression Test Suite**: 74/74 pytest tests passing cleanly across Milestones 0 through 6.
+
 
 
 

@@ -182,5 +182,41 @@ def validate_dataset_command(
         raise typer.Exit(code=1)
 
 
+@app.command(name="eval")
+def eval_command(
+    profile: str = typer.Option("video_comments", "--profile", "-p", help="Platform profile to evaluate."),
+    seed: int = typer.Option(42, "--seed", "-s", help="Deterministic RNG seed."),
+    actors: int = typer.Option(200, "--actors", "-n", help="Total actors per dataset."),
+    out: Path = typer.Option(Path("results"), "--out", "-o", help="Directory to save evaluation reports."),
+) -> None:
+    """Run full benchmark evaluation, ablations, and cross-platform transfer matrix."""
+    from safeflow.eval.runner import EvaluationRunner
+
+    typer.echo(f"Starting SafeFlow Benchmark Evaluation [profile={profile}, seed={seed}, actors={actors}]...")
+    res = EvaluationRunner.run_benchmark(
+        profile=profile,
+        seed=seed,
+        actor_count=actors,
+        out_dir=out,
+    )
+    m = res["metrics"]
+    typer.echo("\n=======================================================")
+    typer.echo(f" SafeFlow Benchmark Results: {profile} (Variant B Test)")
+    typer.echo("=======================================================")
+    typer.echo(f"  - Precision: {m.precision:.4f}")
+    typer.echo(f"  - Recall:    {m.recall:.4f}")
+    typer.echo(f"  - F1 Score:  {m.f1:.4f}")
+    typer.echo(f"  - PR-AUC:    {m.pr_auc:.4f}")
+    typer.echo(f"  - ROC-AUC:   {m.roc_auc:.4f}")
+    typer.echo(f"  - P@10:      {m.precision_at_10:.4f}")
+    typer.echo(f"  - P@50:      {m.precision_at_50:.4f}")
+    typer.echo("=======================================================")
+    typer.echo(f"Saved artifacts to {res['run_dir']}:")
+    typer.echo(f"  - metrics.json")
+    typer.echo(f"  - transfer_matrix.csv")
+    typer.echo(f"  - summary.md\n")
+
+
 if __name__ == "__main__":
     app()
+
