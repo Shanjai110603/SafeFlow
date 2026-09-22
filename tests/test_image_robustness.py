@@ -1,6 +1,6 @@
 """Empirical Robustness Benchmarking against Pre-Registered Distance Table.
 
-Per-Transform Bounds (pre-registered in docs/STATUS.md):
+Per-Transform Bounds (pre-registered in docs/IMAGE_POLICY.md):
 - Identity: dHash == 0, pHash == 0, decision identical
 - Resize (512 -> 128): dHash <= 1, pHash <= 10, decision identical
 - JPEG re-compression (Q=60): dHash <= 1, pHash <= 14, decision identical

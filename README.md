@@ -2,7 +2,31 @@
 
 **An open, platform-agnostic trust & safety signal and decision engine.**
 
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-green.svg)](LICENSE)
+[![Architecture: Multi--Modal](https://img.shields.io/badge/Architecture-Multi--Modal%20T%26S-purple.svg)](docs/ARCHITECTURE.md)
+[![Research: Defensive](https://img.shields.io/badge/Research-Defensive%20%26%20Responsible-orange.svg)](docs/RESPONSIBLE_RESEARCH.md)
+[![Tests: 92 Passing](https://img.shields.io/badge/Tests-92%20Passing-brightgreen.svg)](tests/)
+
 SafeFlow provides modular, multi-modal detection components (profile-image safety gate, media-reuse linking, text behavior analysis, high-space targeting, link/destination analysis) plus an explainable decision engine and graph clustering framework for detecting coordinated pathways that funnel users toward age-inappropriate destinations. Any platform can integrate SafeFlow through a thin adapter.
+
+---
+
+### 📚 Documentation Hub
+
+| Section | Description | Document Link |
+|---|---|---|
+| **System Architecture** | Multi-hop pathway topology, signal extractors & pipeline specs | 📖 [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **Research Report** | Benchmark evaluation, prevalence adjustments & transfer matrices | 📊 [RESEARCH_REPORT.md](docs/RESEARCH_REPORT.md) |
+| **Limitations & Scope** | Perceptual hashing invariant bounds & responsible disclosure | ⚠️ [LIMITATIONS.md](docs/LIMITATIONS.md) |
+| **Threat Model** | Redirection funnels, actor evasion tactics & attack surfaces | 🛡️ [THREAT_MODEL.md](docs/THREAT_MODEL.md) |
+| **Responsible Research** | Ethical commitments, zero-harm data rules & stop-and-report protocol | ⚖️ [RESPONSIBLE_RESEARCH.md](docs/RESPONSIBLE_RESEARCH.md) |
+| **Image Safety Policy** | Policy pack configs, hash-matching rules & analyst blur quotas | 🖼️ [IMAGE_POLICY.md](docs/IMAGE_POLICY.md) |
+| **Intended Use** | Non-adversarial defensive guidelines & prohibited applications | 📜 [INTENDED_USE.md](docs/INTENDED_USE.md) |
+| **Architecture Decisions** | Architectural Decision Records (ADRs) and design rationale | 🏛️ [DECISIONS.md](docs/DECISIONS.md) |
+| **Prior Art & Licenses** | Research lineage, baseline methods & third-party dependency notices | 📑 [PRIOR_ART.md](docs/PRIOR_ART.md) |
+
+---
 
 > [!IMPORTANT]
 > **Non-Affiliation Notice:** SafeFlow is an independent, defensive research project. It is not affiliated with Google, YouTube, or any other platform, has no access to any platform's internal systems, and must never claim otherwise in code, docs, UI, or reports.
@@ -238,22 +262,7 @@ stateDiagram-v2
    - **Analyst Wellbeing**: Server-side Gaussian blur is enabled by default with tamper-evident reveal logging and a 10-reveal session cap.
    - **Privacy Compliance**: Built-in GDPR/CCPA right-to-be-forgotten deletion cascades and structured data export utilities.
 
----
 
-## Documentation
-
-- [Project Status & Gate Verification](docs/STATUS.md)
-- [Research Report](docs/RESEARCH_REPORT.md)
-- [Architecture & Topology](docs/ARCHITECTURE.md)
-- [Limitations & Scope](docs/LIMITATIONS.md)
-- [Threat Model](docs/THREAT_MODEL.md)
-- [Responsible Research Protocol](docs/RESPONSIBLE_RESEARCH.md)
-- [Intended Use & Misuse Posture](docs/INTENDED_USE.md)
-- [Prior Art & Dependency Licenses](docs/PRIOR_ART.md)
-- [Architectural Decision Records](docs/DECISIONS.md)
-- [Image Safety Policy](docs/IMAGE_POLICY.md)
-
----
 
 ## Quickstart
 
